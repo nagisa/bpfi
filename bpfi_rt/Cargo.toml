@@ -1,0 +1,16 @@
+[package]
+name = "bpfi_rt"
+authors.workspace = true
+description.workspace = true
+repository.workspace = true
+license.workspace = true
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = [ "rlib" ]
+
+[[bin]]
+name = "bpfi_rt"
+
+[dependencies]

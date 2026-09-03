@@ -1,0 +1,10 @@
+[package]
+name = "bpfi"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+libc = "0.2.189"
+object = "0.40.0"
+rustix = { version = "1.1.4", features = ["mm"] }
+bpfi_rt = { path = "../bpfi_rt" }

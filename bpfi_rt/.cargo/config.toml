@@ -1,0 +1,6 @@
+[build]
+rustflags = [
+    "-Cpanic=abort",
+    "-Crelocation-model=static",
+    "-Ccode-model=small",
+]

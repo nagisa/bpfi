@@ -1,0 +1,16 @@
+[workspace]
+resolver = "3"
+members = [
+    "bpfi_rt",
+    "bpfi"
+]
+
+[workspace.package]
+version = "0.0.1"
+authors = ["Simonas Kazlauskas <bpfi@kazlauskas.me>"]
+description = "High speed, low latency BPF interpreter (currently an experiment, requires nightly Rust)"
+repository = "https://github.com/nagisa/bpfi"
+license = "Apache-2.0 OR MIT"
+edition = "2024"
+
+[workspace.dependencies]
