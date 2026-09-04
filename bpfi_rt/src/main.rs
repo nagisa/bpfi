@@ -20,7 +20,7 @@ const STEP_HANDLER_SIZE: usize = 64;
 type StepFn = unsafe extern "rust-preserve-none" fn(*const u8, &mut Registers, i64) -> StepReturn;
 
 #[unsafe(export_name = "bpfi_rt_enter")]
-#[unsafe(link_section = ".bpfi_rt.sigbudget")]
+#[unsafe(link_section = ".rt.enter")]
 pub unsafe extern "C" fn enter(
     insn: *const u8,
     registers: &mut Registers,
@@ -29,7 +29,7 @@ pub unsafe extern "C" fn enter(
     step_head(insn, registers, budget)
 }
 
-#[unsafe(link_section = ".bpfi_rt.sigbudget")]
+#[unsafe(link_section = ".rt.sigbudget")]
 #[unsafe(no_mangle)]
 #[cold]
 pub unsafe extern "rust-preserve-none" fn sig_max_instructions(
@@ -40,7 +40,7 @@ pub unsafe extern "rust-preserve-none" fn sig_max_instructions(
     return Err(());
 }
 
-#[unsafe(link_section = ".bpfi_rt.head")]
+#[unsafe(link_section = ".rt.head")]
 #[inline(always)]
 unsafe extern "rust-preserve-none" fn step_head(
     insn: *const u8,
@@ -61,12 +61,12 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
-#[unsafe(export_name = "__bpfi_rt_steps_start")]
-pub static STEPS_SECTION_BASE: u8 = 0;
+#[unsafe(export_name = ".ibase")]
+pub static INTERPRETER_LOAD_BASE: u8 = 0;
 
 #[inline(always)]
 fn step(opcode_dst_src: u16) -> StepFn {
-    let section_base = &raw const STEPS_SECTION_BASE;
+    let section_base = &raw const INTERPRETER_LOAD_BASE;
     let step_function_ptr = unsafe {
         // SAFETY: Contracts from `add` are satisfied by definition of opcode being u8 and
         // `STEP_HANDLER_SIZE` being small.

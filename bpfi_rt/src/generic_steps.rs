@@ -69,4 +69,3 @@ pub unsafe extern "rust-preserve-none" fn invalid_opcode(
 ) -> Result<u64, ()> {
     return Err(());
 }
-
