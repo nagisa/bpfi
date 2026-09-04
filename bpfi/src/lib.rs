@@ -9,6 +9,8 @@ const TOTAL_SLOTS: usize = u16::MAX as usize;
 const DISPATCH_TABLE_SIZE: usize = TOTAL_SLOTS * STEP_STRIDE;
 const SUPPORT_CODE_SPACE: usize = 4 * 1024 * 1024;
 
+static RT_BIN: &'static [u8] = include_bytes!(env!("BPFI_RT_IMG"));
+
 const INT3_TRAP: u8 = 0xCC; // x86_64 int3 trap opcode for padding
 
 pub struct LoadedRt {
@@ -43,8 +45,8 @@ struct RelocSite {
     addend: i64,
 }
 
-pub unsafe fn load_bpfi_rt(elf_bytes: &[u8], supported_opcodes: &[u8]) -> Result<LoadedRt, String> {
-    let file = object::File::parse(elf_bytes).map_err(|e| format!("Failed to parse ELF: {e}"))?;
+pub unsafe fn load_bpfi_rt(supported_opcodes: &[u8]) -> Result<LoadedRt, String> {
+    let file = object::File::parse(RT_BIN).map_err(|e| format!("Failed to parse ELF: {e}"))?;
 
     let mmap_size = DISPATCH_TABLE_SIZE + SUPPORT_CODE_SPACE;
 
