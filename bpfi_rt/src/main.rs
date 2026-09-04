@@ -8,6 +8,7 @@
 #![no_main]
 #![no_std]
 
+use bpfi_rt::EntryFn;
 pub use bpfi_rt::{Registers, StepReturn};
 
 mod generic_steps;
@@ -15,7 +16,6 @@ mod generic_steps;
 /// The cadence of the step handlers in the linker script. These steps don't *have* to be at most
 /// this many bytes, provided, for example, as long as there are no collisions with the next step.
 const STEP_HANDLER_SIZE: usize = 64;
-
 
 type StepFn = unsafe extern "rust-preserve-none" fn(*const u8, &mut Registers, i64) -> StepReturn;
 
@@ -26,6 +26,9 @@ pub unsafe extern "C" fn enter(
     registers: &mut Registers,
     budget: i64,
 ) -> StepReturn {
+    #[used]
+    static _USED: EntryFn = enter;
+
     step_head(insn, registers, budget)
 }
 
@@ -37,6 +40,23 @@ pub unsafe extern "rust-preserve-none" fn sig_max_instructions(
     _: &mut Registers,
     _: i64,
 ) -> StepReturn {
+    #[used]
+    static _USED: StepFn = sig_max_instructions;
+
+    return Err(());
+}
+
+#[unsafe(link_section = ".rt.sigill")]
+#[unsafe(no_mangle)]
+#[cold]
+pub unsafe extern "rust-preserve-none" fn sig_illegal_instruction(
+    _: *const u8,
+    _: &mut Registers,
+    _: i64,
+) -> StepReturn {
+    #[used]
+    static _USED: StepFn = sig_illegal_instruction;
+
     return Err(());
 }
 
@@ -47,6 +67,9 @@ unsafe extern "rust-preserve-none" fn step_head(
     registers: &mut Registers,
     mut budget: i64,
 ) -> StepReturn {
+    #[used]
+    static _USED: StepFn = step_head;
+
     budget = budget.wrapping_sub(1);
     if budget.wrapping_sub(1) < 0 {
         become sig_max_instructions(insn, registers, budget);
