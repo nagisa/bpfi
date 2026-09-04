@@ -1,0 +1,2 @@
+[alias]
+build-rt = "rustc -p bpfi_rt --release --bin bpfi_rt -- -Cpanic=abort -Crelocation-model=static -Ccode-model=small"
