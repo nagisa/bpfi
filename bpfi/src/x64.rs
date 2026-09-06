@@ -1,9 +1,9 @@
 use crate::template::{PlaceholderType, Template};
 
-mod mnemonic;
 mod ast;
+mod generated;
 mod mem;
-pub(crate) use mnemonic::{Mnemonic, x64_mnemonic};
+
 pub(crate) use ast::x64_template;
 use mem::Mem;
 
@@ -67,6 +67,124 @@ pub enum Size {
     Word,
     Long,
     Quad,
+}
+
+#[derive(Clone, Copy)]
+pub enum EncodingRm {
+    None,
+    Gpr(Gpr),
+    Mem(Mem),
+}
+
+#[derive(Clone, Copy)]
+pub struct Encoding {
+    pub(crate) op: &'static [u8],
+    /// Size of the register operand.
+    pub(crate) sz: Size,
+    /// Force REX.W prefix even if not Size::Quad
+    pub(crate) rex_w: bool,
+    pub(crate) reg: Option<Gpr>,
+    pub(crate) rm: EncodingRm,
+    pub(crate) ext: Option<u8>,
+    pub(crate) tail: Option<Template>,
+}
+
+impl Encoding {
+    pub const fn encode(self) -> Template {
+        let word_prefix = if let Size::Word = self.sz {
+            Template::bytes([0x66])
+        } else {
+            Template::EMPTY
+        };
+
+        let rex_w = matches!(self.sz, Size::Quad) || self.rex_w;
+        let rex_r = matches!(self.reg, Some(Gpr(8..16)));
+        let mut rex_x = false;
+        let mut rex_b = false;
+        match self.rm {
+            EncodingRm::Gpr(r) => rex_b = matches!(r, Gpr(8..16)),
+            EncodingRm::Mem(m) => {
+                rex_b = matches!(m.base, Some(Gpr(8..16)));
+                rex_x = matches!(m.index, Some((Gpr(8..16), _)));
+            }
+            EncodingRm::None if self.ext.is_none() => rex_b = matches!(self.reg, Some(Gpr(8..16))),
+            EncodingRm::None => {}
+        }
+        let rex_prefix = if rex_w || rex_r || rex_x || rex_b {
+            let rex = 0x40
+                | ((rex_w as u8) << 3)
+                | ((rex_r as u8) << 2)
+                | ((rex_x as u8) << 1)
+                | (rex_b as u8);
+            Template::bytes([rex])
+        } else {
+            Template::EMPTY
+        };
+
+        let mut opcode = Template::EMPTY;
+        let mut i = 0;
+        while i < self.op.len() {
+            opcode.bytes[i] = self.op[i];
+            i += 1;
+        }
+        opcode.len = self.op.len();
+        if let (EncodingRm::None, None, Some(reg)) = (self.rm, self.ext, self.reg) {
+            opcode.bytes[opcode.len - 1] += reg.0 & 7;
+        }
+
+        let reg_bits = match (self.reg, self.ext) {
+            (Some(reg), _) => reg.0 & 7,
+            (_, Some(ext)) => ext,
+            (_, _) => 0,
+        };
+        let modrm = match self.rm {
+            EncodingRm::Gpr(r) => {
+                let modrm_byte = (0b11 << 6) | (reg_bits << 3) | (r.0 & 7);
+                Template::bytes([modrm_byte])
+            }
+            EncodingRm::Mem(m) => {
+                const SIB_MODE: u8 = 0b100;
+                let base_id = match m.base {
+                    Some(Gpr::RBP | Gpr::R13) if m.disp.len == 0 => {
+                        panic!("[rbp]/[r13] addressing requires displacement")
+                    }
+                    Some(base) => base.0 & 7,
+                    None => SIB_MODE,
+                };
+                let needs_sib = m.index.is_some() || matches!(m.base, Some(Gpr::RSP | Gpr::R12));
+                let mod_type = match m.disp.len {
+                    _ if base_id == SIB_MODE => 0b00,
+                    0 if base_id != SIB_MODE => 0b00,
+                    1 => 0b01,
+                    _ => 0b10,
+                };
+
+                let rm_bits = if needs_sib { SIB_MODE } else { base_id };
+                let modrm_byte = (mod_type << 6) | (reg_bits << 3) | rm_bits;
+
+                if needs_sib {
+                    let (index_id, scale) = match m.index {
+                        Some((reg, scale)) => (reg.0 & 7, scale),
+                        None => (4, 0),
+                    };
+                    let sib_byte = (scale << 6) | (index_id << 3) | base_id;
+                    Template::bytes([modrm_byte, sib_byte]).merge(&m.disp)
+                } else {
+                    Template::bytes([modrm_byte]).merge(&m.disp)
+                }
+            }
+            EncodingRm::None if self.ext.is_some() => {
+                Template::bytes([(0b11 << 6) | (reg_bits << 3)])
+            }
+            EncodingRm::None => Template::EMPTY,
+        };
+
+        if let Some(tail) = self.tail {
+            Template::merged([word_prefix, rex_prefix, opcode, modrm, tail])
+        } else {
+            Template::merged([word_prefix, rex_prefix, opcode, modrm])
+        }
+    }
 }
 
 //
@@ -194,25 +312,21 @@ pub enum Size {
 // }
 //
 pub(crate) const fn interpreter_step() -> Template {
-    x64_template!{
+    // didn't implement translation of instructions with operands quite yet, behold instructions
+    // without operands.
+    x64_template! {
+        ; hlt
         ; retn
-        ;
-        // ; retn
-        // ; retn
-        // ; lock rep repne retn
-        // ; add -1, -1
-        // ; add rax, word ptr [ rax + rdx * 8 + 2 ]
+        ; lock repnz retn
+        ; lock repne retn
     }
-    // x64_template!(lock rep repne retn);
-    // x64_template!(add imm32(-1), imm32(-1));
-    // //x64_instr!(add rax, word ptr [ Rq(0) + rbx * 8 + disp8(1) ]);
-    // x64_template!(add rax, word ptr [ rax + rdx * 8 + 2 ]);
-    // let dispatch = Template::merged([]);
-
-    // Template::merged([
-    //     add_rq_id(Gpr::BUDGET, Template::i32le(-1)),
-    //     jcc(Flag::Sign, Template::bytes([0])),
-    //     dispatch,
-    //     RET,
-    // ])
+    // This sort of stuff will also work in the future.
+    //
+    // let variable_reg = 0;
+    // let templatable_disp = Template::placeholder(todo!(), 1);
+    // x64_template!(add rax, word ptr [ Rq(variable_reg) + rbx * 8 + disp8(variable_disp) ]);
+    //
+    // or statically this parses fine too.
+    //
+    // x64_template!(add rax, word ptr [ rax + rbx * 8 + 42 ]);
 }

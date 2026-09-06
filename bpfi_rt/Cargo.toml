@@ -14,4 +14,5 @@ crate-type = [ "rlib" ]
 name = "bpfi_rt"
 
 [dependencies]
+dynasm = "5.1.0"
 

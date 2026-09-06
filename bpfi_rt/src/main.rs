@@ -8,8 +8,8 @@
 #![no_main]
 #![no_std]
 
-use bpfi_rt::EntryFn;
-pub use bpfi_rt::{Registers, StepReturn};
+use bpfi_rt::{EntryFn, StepFn, BpfResult};
+pub use bpfi_rt::{Registers};
 
 mod generic_steps;
 
@@ -17,19 +17,36 @@ mod generic_steps;
 /// this many bytes, provided, for example, as long as there are no collisions with the next step.
 const STEP_HANDLER_SIZE: usize = 64;
 
-type StepFn = unsafe extern "rust-preserve-none" fn(*const u8, &mut Registers, i64) -> StepReturn;
-
 #[unsafe(export_name = "bpfi_rt_enter")]
 #[unsafe(link_section = ".rt.enter")]
 pub unsafe extern "C" fn enter(
     insn: *const u8,
     registers: &mut Registers,
     budget: i64,
-) -> StepReturn {
+) -> BpfResult {
     #[used]
     static _USED: EntryFn = enter;
-
-    step_head(insn, registers, budget)
+    let return_value: i64;
+    core::arch::asm!(
+        "call {}",
+        sym crate::step_head,
+        in("r12") insn,
+        in("r14") budget,
+        out("rax") return_value,
+        inout("xmm0") registers[0],
+        inout("xmm1") registers[1],
+        inout("xmm2") registers[2],
+        inout("xmm3") registers[3],
+        inout("xmm4") registers[4],
+        inout("xmm5") registers[5],
+        inout("xmm6") registers[6],
+        inout("xmm7") registers[7],
+        inout("xmm8") registers[8],
+        inout("xmm9") registers[9],
+        inout("xmm10") registers[10],
+        out("xmm11") _,
+    );
+    return BpfResult(return_value);
 }
 
 #[unsafe(link_section = ".rt.sigbudget")]
@@ -37,13 +54,13 @@ pub unsafe extern "C" fn enter(
 #[cold]
 pub unsafe extern "rust-preserve-none" fn sig_max_instructions(
     _: *const u8,
-    _: &mut Registers,
     _: i64,
-) -> StepReturn {
+    _: Registers,
+) -> BpfResult {
     #[used]
     static _USED: StepFn = sig_max_instructions;
 
-    return Err(());
+    return BpfResult::TIRED;
 }
 
 #[unsafe(link_section = ".rt.sigill")]
@@ -51,32 +68,32 @@ pub unsafe extern "rust-preserve-none" fn sig_max_instructions(
 #[cold]
 pub unsafe extern "rust-preserve-none" fn sig_illegal_instruction(
     _: *const u8,
-    _: &mut Registers,
     _: i64,
-) -> StepReturn {
+    _: Registers,
+) -> BpfResult {
     #[used]
     static _USED: StepFn = sig_illegal_instruction;
 
-    return Err(());
+    return BpfResult::ILLEGAL_INSN;
 }
 
 #[unsafe(link_section = ".rt.head")]
 #[inline(always)]
 unsafe extern "rust-preserve-none" fn step_head(
     insn: *const u8,
-    registers: &mut Registers,
     mut budget: i64,
-) -> StepReturn {
+    registers: Registers,
+) -> BpfResult {
     #[used]
     static _USED: StepFn = step_head;
 
     budget = budget.wrapping_sub(1);
     if budget.wrapping_sub(1) < 0 {
-        become sig_max_instructions(insn, registers, budget);
+        become sig_max_instructions(insn, budget, registers);
     }
     // TODO: check bounds.
     let next_opcode_handler = step(core::ptr::read_unaligned(insn.cast::<u16>()));
-    become next_opcode_handler(insn, registers, budget.wrapping_sub(1));
+    become next_opcode_handler(insn, budget.wrapping_sub(1), registers);
 }
 
 #[panic_handler]

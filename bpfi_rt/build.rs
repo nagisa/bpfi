@@ -66,7 +66,7 @@ fn main() {
                     r##"
                     #[unsafe(export_name = "s{opcode:03}.{dst:02}.{src:02}")]
                     #[unsafe(link_section = ".rt.{opcode:03}.{dst:02}.{src:02}")]
-                    pub unsafe extern "rust-preserve-none" fn s{opcode:03}_{dst:02}_{src:02}(i: *const u8, r: &mut crate::Registers, b: i64) -> crate::StepReturn {{
+                    pub unsafe extern "rust-preserve-none" fn s{opcode:03}_{dst:02}_{src:02}(i: *const u8, b: i64, r: crate::Registers) -> crate::BpfResult {{
 
                         #[used]
                         static _USED: crate::StepFn = s{opcode:03}_{dst:02}_{src:02} as _;
@@ -82,7 +82,7 @@ fn main() {
                 if op_desc.generic_src {
                     write!(rs, r##"{src}"##).unwrap();
                 }
-                writeln!(rs, ">(i, r, b); }}").unwrap();
+                writeln!(rs, ">(i, b, r); }}").unwrap();
 
             }
         }
