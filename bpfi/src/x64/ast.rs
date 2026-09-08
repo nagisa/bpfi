@@ -98,7 +98,7 @@ impl Mem {
             None => None,
         };
         let index = match self.index {
-            Some((i, s)) => Some((i.encode_gpr(), s)),
+            Some((i, s)) => Some((i.encode_gpr(), s.trailing_zeros() as u8)),
             None => None
         };
         EncodingMem { base, index, disp: self.disp }
@@ -257,7 +257,7 @@ macro_rules! internal_x64_instr {
 }
 
 /// Conversion helper to produce templates for immediate literals
-pub struct ImmTemplate<T>(pub T);
+pub struct ImmTemplate<T=i8>(pub T);
 macro_rules! impl_num_imm_template {
     ($($ty:ty),*) => {
         $(impl ImmTemplate<$ty> {
@@ -395,13 +395,7 @@ macro_rules! x64_operand {
         )
     };
 
-    (@disp $value:literal) => {
-        if let -128..128 = $value {
-            $crate::x64::ast::x64_operand!(@disp disp8($value))
-        } else {
-            $crate::x64::ast::x64_operand!(@disp disp32($value))
-        }
-    };
+    (@disp $value:literal) => { $crate::x64::ast::ImmTemplate($value).template() };
     (@disp disp8($value:literal)) => { $crate::x64::ast::ImmTemplate::<i8>($value).template() };
     (@disp disp8($value:expr)) => { $value };
     (@disp disp32($value:literal)) => { $crate::x64::ast::ImmTemplate::<i32>($value).template() };

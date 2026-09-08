@@ -192,33 +192,43 @@ impl Encoding {
             }
             EncodingRm::Mem(m) => {
                 const SIB_MODE: u8 = 0b100;
-                let base_id = match m.base {
-                    Some(Gpr::RBP | Gpr::R13) if m.disp.len == 0 => {
+                const NO_BASE: u8 = 0b101;
+                let modbits = match m.disp.len {
+                    0 if matches!(m.base, Some(Gpr::RBP | Gpr::R13)) => {
                         panic!("[rbp]/[r13] addressing requires displacement")
                     }
-                    Some(base) => base.0 & 7,
-                    None => SIB_MODE,
-                };
-                let needs_sib = m.index.is_some() || matches!(m.base, Some(Gpr::RSP | Gpr::R12));
-                let mod_type = match m.disp.len {
-                    _ if base_id == SIB_MODE => 0b00,
-                    0 if base_id != SIB_MODE => 0b00,
+                    0 => 0b00,
                     1 => 0b01,
-                    _ => 0b10,
+                    4 => 0b10,
+                    _ => panic!("mem displacement must be 0, 1 or 4 bytes"),
                 };
 
-                let rm_bits = if needs_sib { SIB_MODE } else { base_id };
-                let modrm_byte = (mod_type << 6) | (reg_bits << 3) | rm_bits;
-
-                if needs_sib {
-                    let (index_id, scale) = match m.index {
-                        Some((reg, scale)) => (reg.0 & 7, scale),
-                        None => (4, 0),
-                    };
-                    let sib_byte = (scale << 6) | (index_id << 3) | base_id;
-                    Template::bytes([modrm_byte, sib_byte]).merge(&m.disp)
-                } else {
-                    Template::bytes([modrm_byte]).merge(&m.disp)
+                match (m.base, m.index) {
+                    (None, None) if m.disp.len == 4 => {
+                        let modrm = (0b00 << 6) | 0b100 | NO_BASE;
+                        Template::bytes([modrm]).merge(&m.disp)
+                    }
+                    (Some(Gpr::RSP | Gpr::R12), None) => {
+                        // base = RSP/R12 require SIB byte
+                        let sib = 0 << 6 | SIB_MODE << 3 | SIB_MODE;
+                        let modrm = modbits << 6 | reg_bits << 3 | SIB_MODE;
+                        Template::bytes([modrm, sib]).merge(&m.disp)
+                    }
+                    (Some(base), None) => {
+                        let modrm = (modbits << 6) | (reg_bits << 3) | base.0 & 7;
+                        Template::bytes([modrm]).merge(&m.disp)
+                    }
+                    (None, Some((index, scale))) => {
+                        let sib_byte = scale << 6 | (index.0 & 7) << 3 | NO_BASE;
+                        let modrm = 0b00 << 6 | reg_bits << 3 | SIB_MODE;
+                        Template::bytes([modrm, sib_byte]).merge(&m.disp)
+                    }
+                    (Some(base), Some((index, scale))) => {
+                        let sib = scale << 6 | (index.0 & 7) << 3 | base.0 & 7;
+                        let modrm = modbits << 6 | reg_bits << 3 | SIB_MODE;
+                        Template::bytes([modrm, sib]).merge(&m.disp)
+                    }
+                    _ => panic!("invalid mem operand"),
                 }
             }
             EncodingRm::None if self.ext.is_some() => {
