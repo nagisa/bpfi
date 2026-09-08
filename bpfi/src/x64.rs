@@ -149,16 +149,28 @@ impl Encoding {
         let rex_r = matches!(self.reg, Some(Gpr(8..16)));
         let mut rex_x = false;
         let mut rex_b = false;
+        // FIXME: ah~bh and r4b~r7b share same register number and the low byte variant is selected
+        // by… slapping a rex before the instruction.
+        // This seems like a wrong layer to figure these things out. And besides we don't even
+        // support high registers...
+        // Right now this code doesn't work right anyway because the generator does not populate
+        // the `sz` field right for some of the relevant instructions.
+        let mut gotta_rex_for_byte_regs = false;
         match self.rm {
-            EncodingRm::Gpr(r) => rex_b = matches!(r, Gpr(8..16)),
+            EncodingRm::Gpr(r) => {
+                gotta_rex_for_byte_regs |= matches!((self.sz, r), (Size::Byte, Gpr(4..8)));
+                rex_b = matches!(r, Gpr(8..16))
+            }
             EncodingRm::Mem(m) => {
+                gotta_rex_for_byte_regs |= matches!((self.sz, m.base), (Size::Byte, Some(Gpr(4..8))));
+                gotta_rex_for_byte_regs |= matches!((self.sz, m.index), (Size::Byte, Some((Gpr(4..8), _))));
                 rex_b = matches!(m.base, Some(Gpr(8..16)));
                 rex_x = matches!(m.index, Some((Gpr(8..16), _)));
             }
             EncodingRm::None if self.ext.is_none() => rex_b = matches!(self.reg, Some(Gpr(8..16))),
             EncodingRm::None => {}
         }
-        let rex_w = if rex_w || rex_r || rex_x || rex_b {
+        let rex_w = if rex_w || rex_r || rex_x || rex_b || gotta_rex_for_byte_regs {
             let rex = 0x40
                 | ((rex_w as u8) << 3)
                 | ((rex_r as u8) << 2)
