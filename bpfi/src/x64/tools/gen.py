@@ -333,7 +333,7 @@ class EncoderArmContext:
             case "I" | "A" | "J":
                 imm = self.new_var()
                 self.tail_vars.append(imm)
-                pat = f"O::Imm({imm})"
+                pat = f"O::Rel({imm})" if op.a == "J" else f"O::Imm({imm})"
                 if op_index == self.size_authority:
                     # This is one of the variable-sized `op imm` encodings. We have to determine
                     # the opcode size from the immediate template length.

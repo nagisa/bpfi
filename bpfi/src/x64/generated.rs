@@ -2200,123 +2200,123 @@ impl crate::x64::ast::Instruction {
                 Enc { pref: b"" , op: b"\x0F\x79" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
             },
 
-            (M::Jo, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jo, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x80" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jno, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jno, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x81" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jb, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jb, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x82" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jnae, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jnae, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x82" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jc, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jc, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x82" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jnb, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jnb, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x83" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jae, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jae, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x83" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jnc, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jnc, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x83" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jz, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jz, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x84" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Je, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Je, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x84" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jnz, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jnz, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x85" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jne, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jne, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x85" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jbe, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jbe, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x86" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jna, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jna, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x86" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jnbe, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jnbe, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x87" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Ja, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Ja, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x87" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Js, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Js, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x88" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jns, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jns, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x89" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jp, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jp, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8A" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jpe, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jpe, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8A" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jnp, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jnp, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8B" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jpo, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jpo, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8B" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jl, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jl, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8C" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jnge, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jnge, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8C" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jnl, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jnl, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8D" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jge, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jge, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8D" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jle, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jle, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8E" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jng, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jng, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8E" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jnle, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jnle, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8F" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jg, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jg, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\x0F\x8F" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
@@ -3200,123 +3200,123 @@ impl crate::x64::ast::Instruction {
                 Enc { pref: b"" , op: b"\x6F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
-            (M::Jo, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jo, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x70" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jno, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jno, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x71" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jb, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jb, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x72" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jnae, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jnae, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x72" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jc, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jc, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x72" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jnb, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jnb, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x73" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jae, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jae, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x73" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jnc, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jnc, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x73" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jz, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jz, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x74" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Je, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Je, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x74" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jnz, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jnz, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x75" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jne, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jne, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x75" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jbe, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jbe, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x76" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jna, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jna, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x76" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jnbe, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jnbe, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x77" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Ja, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Ja, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x77" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Js, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Js, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x78" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jns, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jns, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x79" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jp, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jp, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7A" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jpe, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jpe, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7A" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jnp, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jnp, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7B" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jpo, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jpo, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7B" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jl, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jl, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jnge, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jnge, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jnl, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jnl, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jge, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jge, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jle, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jle, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7E" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jng, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jng, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7E" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jnle, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jnle, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jg, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jg, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\x7F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
@@ -4772,35 +4772,35 @@ impl crate::x64::ast::Instruction {
                 Enc { pref: b"\x9B" , op: b"\xDF\xE0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
             },
 
-            (M::Loopnz, Os::A(O::Imm(_2))) if _2.len == 1 => {
+            (M::Loopnz, Os::A(O::Rel(_2))) if _2.len == 1 => {
                 Enc { pref: b"" , op: b"\xE0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
             },
 
-            (M::Loopne, Os::A(O::Imm(_2))) if _2.len == 1 => {
+            (M::Loopne, Os::A(O::Rel(_2))) if _2.len == 1 => {
                 Enc { pref: b"" , op: b"\xE0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
             },
 
-            (M::Loopz, Os::A(O::Imm(_2))) if _2.len == 1 => {
+            (M::Loopz, Os::A(O::Rel(_2))) if _2.len == 1 => {
                 Enc { pref: b"" , op: b"\xE1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
             },
 
-            (M::Loope, Os::A(O::Imm(_2))) if _2.len == 1 => {
+            (M::Loope, Os::A(O::Rel(_2))) if _2.len == 1 => {
                 Enc { pref: b"" , op: b"\xE1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
             },
 
-            (M::Loop, Os::A(O::Imm(_2))) if _2.len == 1 => {
+            (M::Loop, Os::A(O::Rel(_2))) if _2.len == 1 => {
                 Enc { pref: b"" , op: b"\xE2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
             },
 
-            (M::Jcxz, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jcxz, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\xE3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jecxz, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jecxz, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\xE3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jrcxz, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jrcxz, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\xE3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
@@ -4820,15 +4820,15 @@ impl crate::x64::ast::Instruction {
                 Enc { pref: b"" , op: b"\xE7" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Call, Os::A(O::Imm(_1))) if matches!(Sz::from_len(_1.len), Sz::Word | Sz::Long) => {
+            (M::Call, Os::A(O::Rel(_1))) if matches!(Sz::from_len(_1.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\xE8" , sz: Sz::from_len(_1.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jmp, Os::A(O::Imm(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
+            (M::Jmp, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
                 Enc { pref: b"" , op: b"\xE9" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::Jmp, Os::A(O::Imm(_1))) if _1.len == 1 => {
+            (M::Jmp, Os::A(O::Rel(_1))) if _1.len == 1 => {
                 Enc { pref: b"" , op: b"\xEB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 

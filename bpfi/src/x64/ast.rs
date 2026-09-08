@@ -109,6 +109,7 @@ impl Mem {
 pub enum Operand {
     Reg(Reg),
     Imm(Template),
+    Rel(Template),
     Mem(Size, Mem),
 }
 
@@ -298,10 +299,10 @@ macro_rules! x64_operand {
         Operand::Imm($value)
     };
     (rel($value:literal)) => {
-        Operand::Imm($crate::x64::ast::ImmTemplate($value).template())
+        Operand::Rel($crate::x64::ast::ImmTemplate($value).template())
     };
     (rel($value:expr)) => {
-        Operand::Imm($value)
+        Operand::Rel($value)
     };
 
     (byte ptr[$($mem:tt)+]) => {
