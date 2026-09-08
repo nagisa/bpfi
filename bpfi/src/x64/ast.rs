@@ -1,41 +1,119 @@
 pub use super::generated::{Mnemonic, Prefix, x64_mnemonic, x64_prefixes};
-use super::{Gpr, Mem};
-use crate::{template::Template, x64::Size};
+use crate::{template::Template, x64::{EncodingMem, Gpr, Size}};
 
 #[derive(Clone, Copy)]
-pub(super) struct Prefixes {
-    pub lock: bool,
-    pub rep: Option<RepPrefix>,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub(super) enum RepPrefix {
-    Rep,
-    Repne,
-}
-
-impl Prefixes {
-    pub const NONE: Self = Self {
-        lock: false,
-        rep: None,
-    };
-}
-
-#[derive(Clone, Copy)]
-pub(super) enum Reg {
+pub enum Reg {
     Gpr(Size, u8),
 }
 
-#[derive(Clone, Copy)]
-pub(super) enum Operand {
-    Reg(Reg),
-    Imm(Template),
-    Mem(Size, Mem),
-    Rel(Template),
+impl Reg {
+    pub const fn encode_gpr(self) -> Gpr {
+        match self {
+            Reg::Gpr(Size::Byte | Size::Word | Size::Long | Size::Quad, idx@0..16) => Gpr(idx),
+            Reg::Gpr(_, _) => panic!("register is invalid"),
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
-pub(super) enum Operands {
+pub struct Mem {
+    pub base: Option<Reg>,
+    pub index: Option<(Reg, u8)>,
+    pub disp: Template,
+}
+
+impl Mem {
+    const fn verify_reg_is_gpr(reg: Reg) -> Reg {
+        match reg {
+            Reg::Gpr(_, _) => reg,
+            // _ => panic!("memory reference registers must be in GPR class"),
+        }
+    }
+    const fn verify_disp_template(disp: &Template) {
+        if !(disp.len == 0 || disp.len == 1 || disp.len == 4) {
+            panic!("mem displacement must be 0, 1 or 4 bytes");
+        }
+    }
+
+    const fn verify_scale_index(scale: u8, index: Reg) {
+        if let Reg::Gpr(_, 4) = index {
+            panic!("index register may not be SP")
+        }
+        if !(scale == 1 || scale == 2 || scale == 4 || scale == 8) {
+            panic!("scale may only be 1, 2, 4 or 8")
+        }
+    }
+    /// [displacement]
+    pub const fn displacement_only(disp: Template) -> Self {
+        Self::verify_disp_template(&disp);
+        Self {
+            base: None,
+            index: None,
+            disp: disp,
+        }
+    }
+
+    /// [base + displacement]
+    pub const fn base_displacement(base: Reg, disp: Template) -> Self {
+        Self::verify_disp_template(&disp);
+        Self {
+            base: Some(Self::verify_reg_is_gpr(base)),
+            index: None,
+            disp: disp,
+        }
+    }
+
+    /// [base]
+    pub const fn base(base: Reg) -> Self {
+        Self::base_displacement(base, Template::EMPTY)
+    }
+
+    /// [index * scale + base + disp] also known as SIB addressing.
+    pub const fn scale_index_base(scale: u8, index: Reg, base: Reg, disp: Template) -> Self {
+        Self::verify_disp_template(&disp);
+        let index = Self::verify_reg_is_gpr(index);
+        Self::verify_scale_index(scale, index);
+        Self {
+            base: Some(Self::verify_reg_is_gpr(base)),
+            index: Some((index, scale)),
+            disp,
+        }
+    }
+
+    /// SIB but without base register.
+    pub const fn scale_index(scale: u8, index: Reg, disp: Template) -> Self {
+        Self::verify_disp_template(&disp);
+        let index = Self::verify_reg_is_gpr(index);
+        Self::verify_scale_index(scale, index);
+        Self {
+            base: None,
+            index: Some((index, scale)),
+            disp,
+        }
+    }
+
+    pub const fn encoding(self) -> EncodingMem {
+        let base = match self.base {
+            Some(b) => Some(b.encode_gpr()),
+            None => None,
+        };
+        let index = match self.index {
+            Some((i, s)) => Some((i.encode_gpr(), s)),
+            None => None
+        };
+        EncodingMem { base, index, disp: self.disp }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum Operand {
+    Reg(Reg),
+    Imm(Template),
+    Mem(Size, Mem),
+}
+
+#[derive(Clone, Copy)]
+pub enum Operands {
     Z,
     A(Operand),
     B(Operand, Operand),
@@ -44,7 +122,7 @@ pub(super) enum Operands {
 }
 
 #[derive(Clone, Copy)]
-pub(super) struct Instruction {
+pub struct Instruction {
     pub prefixes: &'static [Prefix],
     pub mnemonic: Mnemonic,
     pub operands: Operands,
@@ -54,24 +132,21 @@ impl Instruction {
     pub const fn encode_prefixes(&self) -> Template {
         let mut i = 0;
         let mut out = Template::EMPTY;
-        while i <self.prefixes.len() {
+        while i < self.prefixes.len() {
             out = out.merge(&self.prefixes[i].encode());
-            i+= 1;
+            i += 1;
         }
         out
     }
     pub const fn encode(&self) -> Template {
-        Template::merged([
-            self.encode_prefixes(),
-            self.encoding().encode(),
-        ])
+        Template::merged([self.encode_prefixes(), self.encoding().encode()])
     }
 }
 
 #[macro_export]
 macro_rules! x64_template {
     (@collect [$($insns:expr),*] []) => {
-        Template::merged([$($insns.encode()),*])
+        $crate::template::Template::merged([$($insns.encode()),*])
     };
     // Semicolon rules.
     (@collect [$($insns:expr),*] [] ; ; $($rest:tt)*) => {
@@ -115,7 +190,7 @@ macro_rules! x64_template {
 #[macro_export]
 macro_rules! internal_x64_instr {
     ([$($prefixes:ident),*]; $mnemonic:ident) => {
-        Instruction {
+        $crate::x64::ast::Instruction {
             prefixes: &[$($crate::x64::ast::Prefix::$prefixes),*],
             mnemonic: $crate::x64::ast::x64_mnemonic!($mnemonic),
             operands: Operands::Z,
@@ -125,11 +200,11 @@ macro_rules! internal_x64_instr {
         $crate::x64::ast::internal_x64_instr!(@op1 [$($prefixes),*] [$mnemonic] [] $($rest)+)
     };
 
-    (@op1 [$($prefixes:ident),*] [$mnemonic:ident] [$($cur:tt)*]) => {
+    (@op1 [$($prefixes:ident),*] [$mnemonic:ident] [$($cur:tt)+]) => {
         Instruction {
             prefixes: &[$($crate::x64::ast::Prefix::$prefixes),*],
             mnemonic: $crate::x64::ast::x64_mnemonic!($mnemonic),
-            operands: Operands::A(x64_operand!($($cur)*)),
+            operands: Operands::A($crate::x64::ast::x64_operand!($($cur)+)),
         }
     };
     (@op1 [$($prefixes:ident),*] [$mnemonic:ident] [$($a:tt)*] , $($rest:tt)+) => {
@@ -143,7 +218,7 @@ macro_rules! internal_x64_instr {
         Instruction {
             prefixes: &[$($crate::x64::ast::Prefix::$prefixes),*],
             mnemonic: $crate::x64::ast::x64_mnemonic!($mnemonic),
-            operands: Operands::B(x64_operand!($($a)*), x64_operand!($($cur)*)),
+            operands: Operands::B($crate::x64::ast::x64_operand!($($a)*), $crate::x64::ast::x64_operand!($($cur)*)),
         }
     };
     (@op2 [$($prefixes:ident),*] [$mnemonic:ident] [$($a:tt)*] [$($b:tt)*] , $($rest:tt)+) => {
@@ -157,7 +232,7 @@ macro_rules! internal_x64_instr {
         Instruction {
             prefixes: &[$($crate::x64::ast::Prefix::$prefixes),*],
             mnemonic: $crate::x64::ast::x64_mnemonic!($mnemonic),
-            operands: Operands::C(x64_operand!($($a)*), x64_operand!($($b)*), x64_operand!($($cur)*)),
+            operands: Operands::C($crate::x64::ast::x64_operand!($($a)*), $crate::x64::ast::x64_operand!($($b)*), $crate::x64::ast::x64_operand!($($cur)*)),
         }
     };
     (@op3 [$($prefixes:ident),*] [$mnemonic:ident] [$($a:tt)*] [$($b:tt)*] [$($cur:tt)*] , $($rest:tt)+) => {
@@ -170,7 +245,7 @@ macro_rules! internal_x64_instr {
         Instruction {
             prefixes: &[$($crate::x64::ast::Prefix::$prefixes),*],
             mnemonic: $crate::x64::ast::x64_mnemonic!($mnemonic),
-            operands: Operands::D(x64_operand!($($a)*), x64_operand!($($b)*), x64_operand!($($c)*), x64_operand!($($cur)*)),
+            operands: Operands::D($crate::x64::ast::x64_operand!($($a)*), $crate::x64::ast::x64_operand!($($b)*), $crate::x64::ast::x64_operand!($($c)*), $crate::x64::ast::x64_operand!($($cur)*)),
         }
     };
     (@op3 [$($prefixes:ident),*] [$mnemonic:ident] [$($a:tt)*] [$($b:tt)*] [$($c:tt)*] [$($cur:tt)*] , $($rest:tt)+) => {
@@ -195,70 +270,57 @@ impl_num_imm_template!(u8, i8, u16, i16, u32, i32, u64, i64, f32, f64);
 #[macro_export]
 macro_rules! x64_operand {
     ($reg:ident) => {
-        Operand::Reg(x64_operand!(@reg $reg))
+        $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg $reg))
     };
+    // https://censoredusername.github.io/dynasm-rs/language/langref_x64.html#register style
+    // register definitions. These allow for parametric registers.
+    (Rb($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg Rb($id))) };
+    (Rh($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg Rh($id))) };
+    (Rw($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg Rw($id))) };
+    (Rd($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg Rd($id))) };
+    (Rq($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg Rq($id))) };
+    (Rf($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg Rf($id))) };
+    (Rm($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg Rm($id))) };
+    (Rx($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg Rx($id))) };
+    (Ry($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg Ry($id))) };
+    (Rs($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg Rs($id))) };
+    (RC($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg RC($id))) };
+    (RD($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg RD($id))) };
+    (RB($id: expr)) => { $crate::x64::ast::Operand::Reg($crate::x64::ast::x64_operand!(@reg RB($id))) };
 
     ($value:literal) => {
         Operand::Imm($crate::x64::ast::ImmTemplate($value).template())
     };
-    (imm8($value:literal)) => {
-        Operand::Imm($crate::x64::ast::ImmTemplate::<i8>($value).template())
+    (imm($value:literal)) => {
+        Operand::Imm($crate::x64::ast::ImmTemplate($value).template())
     };
-    (imm8($value:expr)) => {
+    (imm($value:expr)) => {
         Operand::Imm($value)
     };
-    (imm16($value:literal)) => {
-        Operand::Imm($crate::x64::ast::ImmTemplate::<i16>($value).template())
+    (rel($value:literal)) => {
+        Operand::Imm($crate::x64::ast::ImmTemplate($value).template())
     };
-    (imm16($value:expr)) => {
+    (rel($value:expr)) => {
         Operand::Imm($value)
-    };
-    (imm32($value:literal)) => {
-        Operand::Imm($crate::x64::ast::ImmTemplate::<i32>($value).template())
-    };
-    (imm32($value:expr)) => {
-        Operand::Imm($value)
-    };
-    (imm64($value:literal)) => {
-        Operand::Imm($crate::x64::ast::ImmTemplate::<i64>($value).template())
-    };
-    (imm64($value:expr)) => {
-        Operand::Imm($value)
-    };
-
-    (rel8($value:literal)) => {
-        Operand::Rel($crate::x64::ast::ImmTemplate::<i8>($value).template())
-    };
-    (rel8($value:expr)) => {
-        Operand::Rel($value)
-    };
-    (rel16($value:literal)) => {
-        Operand::Rel($crate::x64::ast::ImmTemplate::<i16>($value).template())
-    };
-    (rel16($value:expr)) => {
-        Operand::Rel($value)
-    };
-    (rel32($value:literal)) => {
-        Operand::Rel($crate::x64::ast::ImmTemplate::<i32>($value).template())
-    };
-    (rel32($value:expr)) => {
-        Operand::Rel($value)
     };
 
     (byte ptr[$($mem:tt)+]) => {
-        Operand::Mem(Size::Byte, x64_operand!(@mem [$($mem)+]))
+        Operand::Mem($crate::x64::Size::Byte, $crate::x64::ast::x64_operand!(@mem [$($mem)+]))
     };
     (word ptr[$($mem:tt)+]) => {
-        Operand::Mem(Size::Word, x64_operand!(@mem [$($mem)+]))
+        Operand::Mem($crate::x64::Size::Word, $crate::x64::ast::x64_operand!(@mem [$($mem)+]))
     };
     (dword ptr[$($mem:tt)+]) => {
-        Operand::Mem(Size::Long, x64_operand!(@mem [$($mem)+]))
+        Operand::Mem($crate::x64::Size::Long, $crate::x64::ast::x64_operand!(@mem [$($mem)+]))
     };
     (qword ptr[$($mem:tt)+]) => {
-        Operand::Mem(Size::Quad, x64_operand!(@mem [$($mem)+]))
+        Operand::Mem($crate::x64::Size::Quad, $crate::x64::ast::x64_operand!(@mem [$($mem)+]))
+    };
+    ([$($mem:tt)+]) => {
+        Operand::Mem($crate::x64::Size::None, $crate::x64::ast::x64_operand!(@mem [$($mem)+]))
     };
 
-    (@mem [$($mem:tt)+]) => { x64_operand!(@mem_parse [base = None] [index = None] [scale = 1] [disp = Template::EMPTY] $($mem)+) };
+    (@mem [$($mem:tt)+]) => { $crate::x64::ast::x64_operand!(@mem_parse [base = None] [index = None] [scale = 1] [disp = Template::EMPTY] $($mem)+) };
 
     (@mem_parse [base = None] [index = None] [scale = $s:expr] [disp = $disp:expr]) => {
         Mem::displacement_only($disp)
@@ -279,7 +341,7 @@ macro_rules! x64_operand {
         $disp:literal $(+ $($rest:tt)+)?
     ) => {
         x64_operand!(@mem_parse
-            [base = $($base)*] [index = $($index)*] [scale = $scale] [disp = x64_operand!(@disp $disp)]
+            [base = $($base)*] [index = $($index)*] [scale = $scale] [disp = $crate::x64::ast::x64_operand!(@disp $disp)]
             $($($rest)+)?
         )
     };
@@ -288,7 +350,7 @@ macro_rules! x64_operand {
         disp8($($disp:tt)+) $(+ $($rest:tt)+)?
     ) => {
         x64_operand!(@mem_parse
-            [base = $($base)*] [index = $($index)*] [scale = $scale] [disp = x64_operand!(@disp disp8($($disp)+))]
+            [base = $($base)*] [index = $($index)*] [scale = $scale] [disp = $crate::x64::ast::x64_operand!(@disp disp8($($disp)+))]
             $($($rest)+)?
         )
     };
@@ -297,7 +359,7 @@ macro_rules! x64_operand {
         disp32($($disp:tt)+) $(+ $($rest:tt)+)?
     ) => {
         x64_operand!(@mem_parse
-            [base = $($base)*] [index = $($index)*] [scale = $scale] [disp = x64_operand!(@disp disp32($($disp)+))]
+            [base = $($base)*] [index = $($index)*] [scale = $scale] [disp = $crate::x64::ast::x64_operand!(@disp disp32($($disp)+))]
             $($($rest)+)?
         )
     };
@@ -307,8 +369,8 @@ macro_rules! x64_operand {
         [base = $($base:tt)*] [index = $($_:tt)*] [scale = $scale:expr] [disp = $disp:expr]
         $n:literal * $reg:tt $(($($ra:tt)+))? $(+ $($rest:tt)+)?
     ) => {
-        x64_operand!(@mem_parse
-            [base = $($base)*] [index = Some(x64_operand!(@reg $reg $(($($ra)+))?))] [scale = $n] [disp = $disp]
+        $crate::x64::ast::x64_operand!(@mem_parse
+            [base = $($base)*] [index = Some($crate::x64::ast::x64_operand!(@reg $reg $(($($ra)+))?))] [scale = $n] [disp = $disp]
             $($($rest)+)?
         )
     };
@@ -316,8 +378,8 @@ macro_rules! x64_operand {
         [base = $($base:tt)*] [index = $($_:tt)*] [scale = $scale:expr] [disp = $disp:expr]
         $reg:tt $(($($ra:tt)+))? * $n:literal $(+ $($rest:tt)*)?
     ) => {
-        x64_operand!(@mem_parse
-            [base = $($base)*] [index = Some(x64_operand!(@reg $reg $(($($ra)+))?))] [scale = $n] [disp = $disp]
+        $crate::x64::ast::x64_operand!(@mem_parse
+            [base = $($base)*] [index = Some($crate::x64::ast::x64_operand!(@reg $reg $(($($ra)+))?))] [scale = $n] [disp = $disp]
             $($($rest)+)?
         )
     };
@@ -327,17 +389,17 @@ macro_rules! x64_operand {
         [base = $($_:tt)*] [index = $($index:tt)*] [scale = $scale:expr] [disp = $disp:expr]
         $reg:tt $(($($ra:tt)+))? $(+ $($rest:tt)+)?
     ) => {
-        x64_operand!(@mem_parse
-            [base = Some(x64_operand!(@reg $reg $(($($ra)+))?))] [index = $($index)*] [scale = $scale] [disp = $disp]
+        $crate::x64::ast::x64_operand!(@mem_parse
+            [base = Some($crate::x64::ast::x64_operand!(@reg $reg $(($($ra)+))?))] [index = $($index)*] [scale = $scale] [disp = $disp]
             $($($rest)+)?
         )
     };
 
     (@disp $value:literal) => {
         if let -128..128 = $value {
-            x64_operand!(@disp disp8($value))
+            $crate::x64::ast::x64_operand!(@disp disp8($value))
         } else {
-            x64_operand!(@disp disp32($value))
+            $crate::x64::ast::x64_operand!(@disp disp32($value))
         }
     };
     (@disp disp8($value:literal)) => { $crate::x64::ast::ImmTemplate::<i8>($value).template() };
@@ -345,80 +407,88 @@ macro_rules! x64_operand {
     (@disp disp32($value:literal)) => { $crate::x64::ast::ImmTemplate::<i32>($value).template() };
     (@disp disp32($value:expr)) => { $value };
 
-    // https://censoredusername.github.io/dynasm-rs/language/langref_x64.html#register style
-    // register definitions. These allow for parametric registers.
-    (@reg Rb($id: expr)) => { Reg::Gpr(Size::Byte, $id) };
-    (@reg Rw($id: expr)) => { Reg::Gpr(Size::Word, $id) };
-    (@reg Rd($id: expr)) => { Reg::Gpr(Size::Long, $id) };
-    (@reg Rq($id: expr)) => { Reg::Gpr(Size::Quad, $id) };
+    (@reg Rb($id: expr)) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, $id) };
+    (@reg Rh($id: expr)) => { compile_error!("high byte registers not supported") };
+    (@reg Rw($id: expr)) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, $id) };
+    (@reg Rd($id: expr)) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, $id) };
+    (@reg Rq($id: expr)) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, $id) };
+    (@reg Rf($id: expr)) => { compile_error!("x87 registers not supported") };
+    (@reg Rm($id: expr)) => { compile_error!("MMX registers not supported") };
+    (@reg Rx($id: expr)) => { compile_error!("XMM registers not supported") };
+    (@reg Ry($id: expr)) => { compile_error!("YMM registers not supported") };
+    (@reg Rs($id: expr)) => { compile_error!("segment registers not supported") };
+    (@reg RC($id: expr)) => { compile_error!("control registers not supported") };
+    (@reg RD($id: expr)) => { compile_error!("debug registers not supported") };
+    (@reg RB($id: expr)) => { compile_error!("bound registers not supported") };
 
-    (@reg al) => { Reg::Gpr(Size::Byte, 0) };
-    (@reg cl) => { Reg::Gpr(Size::Byte, 1) };
-    (@reg dl) => { Reg::Gpr(Size::Byte, 2) };
-    (@reg bl) => { Reg::Gpr(Size::Byte, 3) };
-    (@reg spl) => { Reg::Gpr(Size::Byte, 4) };
-    (@reg bpl) => { Reg::Gpr(Size::Byte, 5) };
-    (@reg sil) => { Reg::Gpr(Size::Byte, 6) };
-    (@reg dil) => { Reg::Gpr(Size::Byte, 7) };
-    (@reg r8b) => { Reg::Gpr(Size::Byte, 8) };
-    (@reg r9b) => { Reg::Gpr(Size::Byte, 9) };
-    (@reg r10b) => { Reg::Gpr(Size::Byte, 10) };
-    (@reg r11b) => { Reg::Gpr(Size::Byte, 11) };
-    (@reg r12b) => { Reg::Gpr(Size::Byte, 12) };
-    (@reg r13b) => { Reg::Gpr(Size::Byte, 13) };
-    (@reg r14b) => { Reg::Gpr(Size::Byte, 14) };
-    (@reg r15b) => { Reg::Gpr(Size::Byte, 15) };
 
-    (@reg ax) => { Reg::Gpr(Size::Word, 0) };
-    (@reg cx) => { Reg::Gpr(Size::Word, 1) };
-    (@reg dx) => { Reg::Gpr(Size::Word, 2) };
-    (@reg bx) => { Reg::Gpr(Size::Word, 3) };
-    (@reg sp) => { Reg::Gpr(Size::Word, 4) };
-    (@reg bp) => { Reg::Gpr(Size::Word, 5) };
-    (@reg si) => { Reg::Gpr(Size::Word, 6) };
-    (@reg di) => { Reg::Gpr(Size::Word, 7) };
-    (@reg r8w) => { Reg::Gpr(Size::Word, 8) };
-    (@reg r9w) => { Reg::Gpr(Size::Word, 9) };
-    (@reg r10w) => { Reg::Gpr(Size::Word, 10) };
-    (@reg r11w) => { Reg::Gpr(Size::Word, 11) };
-    (@reg r12w) => { Reg::Gpr(Size::Word, 12) };
-    (@reg r13w) => { Reg::Gpr(Size::Word, 13) };
-    (@reg r14w) => { Reg::Gpr(Size::Word, 14) };
-    (@reg r15w) => { Reg::Gpr(Size::Word, 15) };
+    (@reg al) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 0) };
+    (@reg cl) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 1) };
+    (@reg dl) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 2) };
+    (@reg bl) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 3) };
+    (@reg spl) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 4) };
+    (@reg bpl) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 5) };
+    (@reg sil) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 6) };
+    (@reg dil) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 7) };
+    (@reg r8b) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 8) };
+    (@reg r9b) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 9) };
+    (@reg r10b) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 10) };
+    (@reg r11b) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 11) };
+    (@reg r12b) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 12) };
+    (@reg r13b) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 13) };
+    (@reg r14b) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 14) };
+    (@reg r15b) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Byte, 15) };
 
-    (@reg eax) => { Reg::Gpr(Size::Long, 0) };
-    (@reg ecx) => { Reg::Gpr(Size::Long, 1) };
-    (@reg edx) => { Reg::Gpr(Size::Long, 2) };
-    (@reg ebx) => { Reg::Gpr(Size::Long, 3) };
-    (@reg esp) => { Reg::Gpr(Size::Long, 4) };
-    (@reg ebp) => { Reg::Gpr(Size::Long, 5) };
-    (@reg esi) => { Reg::Gpr(Size::Long, 6) };
-    (@reg edi) => { Reg::Gpr(Size::Long, 7) };
-    (@reg r8d) => { Reg::Gpr(Size::Long, 8) };
-    (@reg r9d) => { Reg::Gpr(Size::Long, 9) };
-    (@reg r10d) => { Reg::Gpr(Size::Long, 10) };
-    (@reg r11d) => { Reg::Gpr(Size::Long, 11) };
-    (@reg r12d) => { Reg::Gpr(Size::Long, 12) };
-    (@reg r13d) => { Reg::Gpr(Size::Long, 13) };
-    (@reg r14d) => { Reg::Gpr(Size::Long, 14) };
-    (@reg r15d) => { Reg::Gpr(Size::Long, 15) };
+    (@reg ax) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 0) };
+    (@reg cx) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 1) };
+    (@reg dx) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 2) };
+    (@reg bx) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 3) };
+    (@reg sp) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 4) };
+    (@reg bp) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 5) };
+    (@reg si) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 6) };
+    (@reg di) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 7) };
+    (@reg r8w) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 8) };
+    (@reg r9w) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 9) };
+    (@reg r10w) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 10) };
+    (@reg r11w) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 11) };
+    (@reg r12w) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 12) };
+    (@reg r13w) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 13) };
+    (@reg r14w) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 14) };
+    (@reg r15w) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Word, 15) };
 
-    (@reg rax) => { Reg::Gpr(Size::Quad, 0) };
-    (@reg rcx) => { Reg::Gpr(Size::Quad, 1) };
-    (@reg rdx) => { Reg::Gpr(Size::Quad, 2) };
-    (@reg rbx) => { Reg::Gpr(Size::Quad, 3) };
-    (@reg rsp) => { Reg::Gpr(Size::Quad, 4) };
-    (@reg rbp) => { Reg::Gpr(Size::Quad, 5) };
-    (@reg rsi) => { Reg::Gpr(Size::Quad, 6) };
-    (@reg rdi) => { Reg::Gpr(Size::Quad, 7) };
-    (@reg r8) => { Reg::Gpr(Size::Quad, 8) };
-    (@reg r9) => { Reg::Gpr(Size::Quad, 9) };
-    (@reg r10) => { Reg::Gpr(Size::Quad, 10) };
-    (@reg r11) => { Reg::Gpr(Size::Quad, 11) };
-    (@reg r12) => { Reg::Gpr(Size::Quad, 12) };
-    (@reg r13) => { Reg::Gpr(Size::Quad, 13) };
-    (@reg r14) => { Reg::Gpr(Size::Quad, 14) };
-    (@reg r15) => { Reg::Gpr(Size::Quad, 15) };
+    (@reg eax) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 0) };
+    (@reg ecx) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 1) };
+    (@reg edx) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 2) };
+    (@reg ebx) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 3) };
+    (@reg esp) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 4) };
+    (@reg ebp) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 5) };
+    (@reg esi) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 6) };
+    (@reg edi) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 7) };
+    (@reg r8d) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 8) };
+    (@reg r9d) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 9) };
+    (@reg r10d) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 10) };
+    (@reg r11d) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 11) };
+    (@reg r12d) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 12) };
+    (@reg r13d) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 13) };
+    (@reg r14d) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 14) };
+    (@reg r15d) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Long, 15) };
+
+    (@reg rax) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 0) };
+    (@reg rcx) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 1) };
+    (@reg rdx) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 2) };
+    (@reg rbx) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 3) };
+    (@reg rsp) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 4) };
+    (@reg rbp) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 5) };
+    (@reg rsi) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 6) };
+    (@reg rdi) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 7) };
+    (@reg r8) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 8) };
+    (@reg r9) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 9) };
+    (@reg r10) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 10) };
+    (@reg r11) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 11) };
+    (@reg r12) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 12) };
+    (@reg r13) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 13) };
+    (@reg r14) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 14) };
+    (@reg r15) => { $crate::x64::ast::Reg::Gpr($crate::x64::Size::Quad, 15) };
 }
 
 pub use {internal_x64_instr, x64_operand, x64_template};

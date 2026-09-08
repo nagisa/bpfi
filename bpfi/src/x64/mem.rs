@@ -3,16 +3,15 @@ use crate::{template::Template, x64::ast::Reg};
 
 #[derive(Clone, Copy)]
 pub struct Mem {
-    // TODO: this can be plain Gpr after validation of inputs...
-    pub(crate) base: Option<Gpr>,
-    pub(crate) index: Option<(Gpr, u8)>,
+    pub(crate) base: Option<Reg>,
+    pub(crate) index: Option<(Reg, u8)>,
     pub(crate) disp: Template,
 }
 
 impl Mem {
-    const fn verify_reg_is_gpr(reg: Reg) -> Gpr {
+    const fn verify_reg_is_gpr(reg: Reg) -> Reg {
         match reg {
-            Reg::Gpr(_, idx) => Gpr(idx),
+            Reg::Gpr(_, idx) => reg,
             // _ => panic!("memory reference registers must be in GPR class"),
         }
     }
@@ -22,9 +21,9 @@ impl Mem {
         }
     }
 
-    const fn verify_scale_index(scale: u8, index: Gpr) {
-        if let Gpr::RSP = index {
-            panic!("index register may not be RSP")
+    const fn verify_scale_index(scale: u8, index: Reg) {
+        if let Reg::Gpr(_, 4) = index {
+            panic!("index register may not be SP")
         }
         if !(scale == 1 || scale == 2 || scale == 4 || scale == 8) {
             panic!("scale may only be 1, 2, 4 or 8")
@@ -76,39 +75,6 @@ impl Mem {
             base: None,
             index: Some((index, scale)),
             disp,
-        }
-    }
-
-    pub const fn encode(&self, other_op_bits: u8) -> Template {
-        const fn calc_mod(base: Gpr, disp: &Template) -> u8 {
-            match disp.len {
-                0 if (base.0 & 7) != 5 => 0x00,
-                1 => 0x40,
-                _ => 0x80,
-            }
-        }
-        match (self.base, self.index) {
-            (Some(base), Some((index, scale))) => {
-                let sib = (scale as u8) << 6 | (index.0 & 7) << 3 | base.0 & 7;
-                let modrm = calc_mod(base, &self.disp) | other_op_bits | 4 /* SIB encoding */;
-                Template::bytes([modrm, sib]).merge(&self.disp)
-            }
-            // base = RSP/R12 require SIB byte
-            (Some(base), None) if (base.0 & 7) == 4 => {
-                let modrm = calc_mod(base, &self.disp) | other_op_bits | 4 /* SIB encoding */;
-                Template::bytes([modrm, 0x24]).merge(&self.disp)
-            }
-            (Some(base), None) => {
-                let modrm = calc_mod(base, &self.disp) | other_op_bits;
-                Template::bytes([modrm]).merge(&self.disp)
-            }
-            (None, Some((index, scale))) => {
-                let index_code = (index.0 & 7) << 3;
-                let scale_bits = (scale as u8) << 6;
-                let sib_byte = scale_bits | index_code | 0b101; // Base = 5 (no base)
-                Template::bytes([0x00 | other_op_bits | 4, sib_byte]).merge(&self.disp)
-            }
-            (None, None) => panic!("Mem operand must have a base or an index"),
         }
     }
 }

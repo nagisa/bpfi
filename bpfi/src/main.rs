@@ -1,8 +1,39 @@
-mod template;
-mod x64;
+use bpfi::template::Template;
+
+pub(crate) const fn interpreter_step() -> Template {
+    // didn't implement translation of instructions with operands quite yet, behold instructions
+    // without operands.
+    let placeholder = Template::placeholder(1);
+    let register = 5;
+    let number = Template::placeholder(4);
+
+    bpfi::x64::x64_template! {
+        ; hlt
+        ; retn
+        ; lock repnz retn
+        ; lock repne retn
+        ; add rax, 32i32
+        ; add rax, 32i32
+        ; add Rd(register), imm(number)
+        ; js -8i32
+        ; jo rel(placeholder)
+        ; movbe eax, dword ptr [ Rq(register) + 32 ]
+        ; crc32 rax, bx
+    }
+
+    // This sort of stuff will also work in the future.
+    //
+    // let variable_reg = 0;
+    // let templatable_disp = Template::placeholder(todo!(), 1);
+    // x64_template!(add rax, word ptr [ Rq(variable_reg) + rbx * 8 + disp8(variable_disp) ]);
+    //
+    // or statically this parses fine too.
+    //
+    // x64_template!(add rax, word ptr [ rax + rbx * 8 + 42 ]);
+}
 
 fn main() {
-    let tpl = x64::interpreter_step();
+    let tpl = interpreter_step();
 
     for byte in &tpl.bytes[..tpl.len] {
         print!("{:02X?}", byte);

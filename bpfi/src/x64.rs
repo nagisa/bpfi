@@ -1,11 +1,8 @@
-use crate::template::{PlaceholderType, Template};
+use crate::template::Template;
+pub use ast::x64_template;
 
-mod ast;
+pub mod ast;
 mod generated;
-mod mem;
-
-pub(crate) use ast::x64_template;
-use mem::Mem;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Gpr(pub u8);
@@ -61,23 +58,75 @@ pub enum Flag {
 }
 
 #[derive(Copy, Clone)]
+#[repr(u8)]
 pub enum Size {
     None,
     Byte,
     Word,
     Long,
     Quad,
+    /// 16 bytes
+    Octw,
+}
+
+impl Size {
+    pub const fn from_len(len: usize) -> Self {
+        match len {
+            1 => Self::Byte,
+            2 => Self::Word,
+            4 => Self::Long,
+            8 => Self::Quad,
+            16 => Self::Octw,
+            _ => panic!("byte count is not a valid instruction size"),
+        }
+    }
+
+    pub const fn is(self, other: Self) -> bool {
+        self as u8 == other as u8
+    }
+
+    pub const fn from_vds(len: usize) -> Self {
+        match len {
+            2 | 4 => Self::from_len(len),
+            _ => panic!("byte count is not 2 or 4 bytes"),
+        }
+    }
+
+    pub const fn from_vqp(len: usize) -> Self {
+        match len {
+            2 | 4 | 8 => Self::from_len(len),
+            _ => panic!("byte count is not 2, 4 or 8 bytes"),
+        }
+    }
+
+    pub const fn from_vs(len: usize) -> Self {
+        Self::from_vds(len)
+    }
+
+    pub const fn cmp(&self, other: &Self) -> i8 {
+        *self as u8 as i8 - *other as u8 as i8
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct EncodingMem {
+    pub(crate) base: Option<Gpr>,
+    pub(crate) index: Option<(Gpr, u8)>,
+    pub(crate) disp: Template,
 }
 
 #[derive(Clone, Copy)]
 pub enum EncodingRm {
     None,
     Gpr(Gpr),
-    Mem(Mem),
+    Mem(EncodingMem),
 }
 
 #[derive(Clone, Copy)]
 pub struct Encoding {
+    /// Prefix that always precedes instruction (including its RAX.W modifier, hence it being a
+    /// separate field.) Example: crc32.
+    pub(crate) pref: &'static [u8],
     pub(crate) op: &'static [u8],
     /// Size of the register operand.
     pub(crate) sz: Size,
@@ -91,11 +140,10 @@ pub struct Encoding {
 
 impl Encoding {
     pub const fn encode(self) -> Template {
-        let word_prefix = if let Size::Word = self.sz {
-            Template::bytes([0x66])
-        } else {
-            Template::EMPTY
-        };
+        let mut prefixes = Template::from_slice(self.pref);
+        if let Size::Word = self.sz {
+            prefixes = Template::bytes([0x66]).merge(&prefixes);
+        }
 
         let rex_w = matches!(self.sz, Size::Quad) || self.rex_w;
         let rex_r = matches!(self.reg, Some(Gpr(8..16)));
@@ -110,7 +158,7 @@ impl Encoding {
             EncodingRm::None if self.ext.is_none() => rex_b = matches!(self.reg, Some(Gpr(8..16))),
             EncodingRm::None => {}
         }
-        let rex_prefix = if rex_w || rex_r || rex_x || rex_b {
+        let rex_w = if rex_w || rex_r || rex_x || rex_b {
             let rex = 0x40
                 | ((rex_w as u8) << 3)
                 | ((rex_r as u8) << 2)
@@ -180,153 +228,9 @@ impl Encoding {
         };
 
         if let Some(tail) = self.tail {
-            Template::merged([word_prefix, rex_prefix, opcode, modrm, tail])
+            Template::merged([prefixes, rex_w, opcode, modrm, tail])
         } else {
-            Template::merged([word_prefix, rex_prefix, opcode, modrm])
+            Template::merged([prefixes, rex_w, opcode, modrm])
         }
     }
-}
-
-//
-// /// A conditional jump, with opcode selected based on offset size.
-// ///
-// /// Only 1 byte or 4 byte offsets are supported architecturally.
-// /// Don't go looking for other sorts of conditional jumps, they don't exist.
-// pub const fn jcc(cond: Flag, off: Template) -> Template {
-//     let op = match off.len {
-//         1 => Template::bytes([0x70 | (cond as u8)]),
-//         4 => Template::bytes([0x0F, 0x80 | (cond as u8)]),
-//         _ => panic!("x86-64 Jcc offset must be 1 byte (short) or 4 bytes (near)"),
-//     };
-//     Template::merged([op, off])
-// }
-//
-// /// 64-bit REX.W prefix.
-// ///
-// /// `r` is the register field (usually dst), `rm` is the r/m field (usually src or base.)
-// pub(crate) const fn rex_w(r: Gpr, rm: Gpr) -> Template {
-//     Template::bytes([0x48 | (r.0 >> 3) << 2 | rm.0 >> 3])
-// }
-//
-// /// 64-bit REX.W prefix including REX.R, REX.X, and REX.B bits for SIB addressing.
-// pub const fn rex_w_sib(reg: Gpr, base: Gpr, index: Gpr) -> Template {
-//     let r = (reg.0 >> 3) & 1;
-//     let x = (index.0 >> 3) & 1;
-//     let b = (base.0 >> 3) & 1;
-//     Template::bytes([0x48 | (r << 2) | (x << 1) | b])
-// }
-//
-// pub const fn rex_w_sib_for_mem(reg: Gpr, mem: Mem) -> Template {
-//     let (base, index) = match (mem.base, mem.index) {
-//         (Some(b), Some((i, _))) => (b, i),
-//         (Some(b), None) => (b, Gpr::RAX),
-//         (None, Some((i, _))) => (Gpr::RAX, i),
-//         (None, None) => (Gpr::RAX, Gpr::RAX),
-//     };
-//     rex_w_sib(reg, base, index)
-// }
-//
-// pub const fn rex_b(b: Gpr) -> Template {
-//     Template::bytes([0x40 | (b.0 >> 3)])
-// }
-//
-// /// ModR/M byte for Register-to-Register operations (Mod = 11)
-// pub(crate) const fn modrm_reg(r: Gpr, rm: Gpr) -> Template {
-//     Template::bytes([0xC0 | (r.0 & 7) << 3 | rm.0 & 7])
-// }
-//
-// pub(crate) const fn add_rq_id(dst: Gpr, imm: Template) -> Template {
-//     let prefix = rex_w(Gpr(0), dst);
-//     let opcode = if let Gpr::RAX = dst {
-//         Template::bytes([0x05])
-//     } else {
-//         Template::bytes([0x81]).merge(&modrm_reg(Gpr(0), dst))
-//     };
-//     Template::merged([prefix, opcode, imm.assert_len(4)])
-// }
-//
-// // `MOV r, imm`: Move the immediate value into register.
-// //
-// // Zeroes the upper bits of the register.
-// pub(crate) const fn mov_reg_imm(dst: Gpr, imm: Template) -> Template {
-//     let opcode = Template::bytes([0xB8 | dst.0 & 7]);
-//     match imm.len {
-//         // 32-bit immediate: MOV r32, imm32
-//         4 if dst.0 >= 8 => Template::merged([rex_b(dst), opcode, imm]),
-//         4 => Template::merged([opcode, imm]),
-//         // 64-bit immediate: MOV r64, imm64
-//         8 => Template::merged([rex_w(Gpr(0), dst), opcode, imm]),
-//         // Moves from imm8 or imm16 could be implemented by using an additional
-//         // instruction. Which makes no sense, so just extend your immediate to 4 bytes.
-//         _ => panic!("MOV reg, imm immediate length must be 4, or 8 bytes"),
-//     }
-// }
-//
-// /// `MOV r, r`
-// pub(crate) const fn mov_reg_reg(dst: Gpr, src: Gpr) -> Template {
-//     Template::merged([
-//         rex_w(src, dst),
-//         Template::bytes([0x89]),
-//         modrm_reg(src, dst),
-//     ])
-// }
-//
-// /// `MOV r, mem` (load from memory)
-// pub(crate) const fn mov_reg_mem(bitsize: u8, dst: Gpr, src: Mem) -> Template {
-//     Template::merged([
-//         rex_w_sib_for_mem(dst, src),
-//         Template::bytes([0x8B]),
-//         src.encode(dst),
-//     ])
-// }
-//
-// /// `MOV mem, r` (store to memory)
-// pub(crate) const fn mov_mem_reg(bitsize: u8, dst: Gpr, src: Mem) -> Template {
-//     if bitsize == 64 {
-//     }
-//     Template::merged([
-//         rex_w_sib_for_mem(dst, src),
-//         Template::bytes([0x89]),
-//         src.encode(dst),
-//     ])
-// }
-//
-// const IMM32: Template = Template::placeholder(PlaceholderType::Imm, 4);
-// const RET: Template = Template::bytes([0xC3]);
-//
-// pub(crate) const fn gpr_for_bpf(reg: u8) -> Gpr {
-//     match reg {
-//         0 => Gpr::RSI,
-//         1 => Gpr::RDI,
-//         2 => Gpr::R8,
-//         3 => Gpr::R9,
-//         4 => Gpr::R10,
-//         5 => Gpr::R11,
-//         6 => Gpr::R12,
-//         7 => Gpr::R13,
-//         8 => Gpr::R14,
-//         9 => Gpr::R15,
-//         10 => Gpr::RBX,
-//         _ => panic!("unknown bpf register"),
-//     }
-// }
-//
-pub(crate) const fn interpreter_step() -> Template {
-    // didn't implement translation of instructions with operands quite yet, behold instructions
-    // without operands.
-    x64_template! {
-        ; hlt
-        ; retn
-        ; lock repnz retn
-        ; lock repne retn
-    }
-    // This sort of stuff will also work in the future.
-    //
-    // let variable_reg = 0;
-    // let templatable_disp = Template::placeholder(todo!(), 1);
-    // x64_template!(add rax, word ptr [ Rq(variable_reg) + rbx * 8 + disp8(variable_disp) ]);
-    //
-    // or statically this parses fine too.
-    //
-    // x64_template!(add rax, word ptr [ rax + rbx * 8 + 42 ]);
 }
