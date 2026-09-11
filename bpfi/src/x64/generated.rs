@@ -1414,3694 +1414,3686 @@ pub use x64_prefixes;
 impl crate::x64::ast::Instruction {
     #[track_caller]
     pub const fn encoding(&self) -> crate::x64::Encoding {
-        use crate::x64::ast::{Mnemonic as M, Operands as Os, Operand as O, Reg as R};
-        use crate::x64::{Size as Sz, Encoding as Enc, EncodingRm as Erm, Gpr };
+        use crate::x64::ast::{Mnemonic as M, Operands as Os, Operand as O, Reg as R, RegType as RT, MemSize as MSz };
+        use crate::x64::{Encoding as Enc, EncodingRm as Erm, OperandInfo as OpI, opguard_szop, opguard };
 
         #[allow(unused_parens, unreachable_patterns)]
         match (self.mnemonic, self.operands) {
 
-            (M::Add, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x00" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
+            (M::Adc, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x10" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Add, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x00" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
+            (M::Adc, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x10" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Add, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x01" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
+            (M::Adc, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x11" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Add, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x01" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
+            (M::Adc, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x11" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Add, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x02" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
+            (M::Adc, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x12" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
             },
 
-            (M::Add, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\x02" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
+            (M::Adc, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x12" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
             },
 
-            (M::Add, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x03" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
+            (M::Adc, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x13" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Add, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x03" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
+            (M::Adc, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x13" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Add, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x04" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
+            (M::Adc, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x14" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
             },
 
-            (M::Add, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), 0)),O::Imm(_1))) if Sz::from_vds(_1.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x05" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            (M::Adc, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x15" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Or, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x08" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
+            (M::Adc, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(2), tail: Some(_2) }
             },
 
-            (M::Or, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x08" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
+            (M::Adc, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(2), tail: Some(_2) }
             },
 
-            (M::Or, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x09" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
+            (M::Adc, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(2), tail: Some(_1) }
             },
 
-            (M::Or, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x09" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
+            (M::Adc, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(2), tail: Some(_1) }
             },
 
-            (M::Or, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x0A" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
+            (M::Adc, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(2), tail: Some(_1) }
             },
 
-            (M::Or, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\x0A" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
+            (M::Adc, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(2), tail: Some(_1) }
             },
 
-            (M::Or, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
+            (M::Add, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x00" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Or, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
+            (M::Add, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x00" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Or, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x0C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
+            (M::Add, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x01" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Or, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), 0)),O::Imm(_1))) if Sz::from_vds(_1.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x0D" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            (M::Add, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x01" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Sldt, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
+            (M::Add, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x02" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
             },
 
-            (M::Sldt, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: None }
+            (M::Add, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x02" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
             },
 
-            (M::Str, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
+            (M::Add, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x03" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Str, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(1), tail: None }
+            (M::Add, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x03" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Lldt, Os::A(O::Reg(R::Gpr(_1@(Sz::Word), _2)))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_2)), ext: Some(2), tail: None }
+            (M::Add, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x04" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
             },
 
-            (M::Lldt, Os::A(O::Mem(_1@(Sz::Word), _2))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_2.encoding()), ext: Some(2), tail: None }
+            (M::Add, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x05" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Ltr, Os::A(O::Reg(R::Gpr(_1@(Sz::Word), _2)))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_2)), ext: Some(3), tail: None }
+            (M::Add, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: Some(_2) }
             },
 
-            (M::Ltr, Os::A(O::Mem(_1@(Sz::Word), _2))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_2.encoding()), ext: Some(3), tail: None }
+            (M::Add, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: Some(_2) }
             },
 
-            (M::Verr, Os::A(O::Reg(R::Gpr(_0@(Sz::Word), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(4), tail: None }
+            (M::Add, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
             },
 
-            (M::Verr, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
+            (M::Add, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
             },
 
-            (M::Verw, Os::A(O::Reg(R::Gpr(_0@(Sz::Word), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(5), tail: None }
+            (M::Add, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
             },
 
-            (M::Verw, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: None }
+            (M::Add, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
             },
 
-            (M::Jmpe, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x00" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            (M::And, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x20" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Sgdt, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x01" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
+            (M::And, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x20" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Sidt, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x01" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
+            (M::And, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x21" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Lgdt, Os::A(O::Mem(_1@(Sz::None), _2))) => {
-                Enc { pref: b"" , op: b"\x0F\x01" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_2.encoding()), ext: Some(2), tail: None }
+            (M::And, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x21" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Lidt, Os::A(O::Mem(_1@(Sz::None), _2))) => {
-                Enc { pref: b"" , op: b"\x0F\x01" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_2.encoding()), ext: Some(3), tail: None }
+            (M::And, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x22" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
             },
 
-            (M::Smsw, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x01" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
+            (M::And, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x22" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
             },
 
-            (M::Smsw, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x01" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: None }
+            (M::And, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x23" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Lmsw, Os::A(O::Reg(R::Gpr(_0@(Sz::Word), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x01" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(6), tail: None }
+            (M::And, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x23" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Lmsw, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x01" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
+            (M::And, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x24" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
             },
 
-            (M::Invlpg, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x01" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
+            (M::And, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x25" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Vmcall, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x01\xC1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(0), tail: None }
+            (M::And, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: Some(_2) }
             },
 
-            (M::Vmlaunch, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x01\xC2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(0), tail: None }
+            (M::And, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: Some(_2) }
             },
 
-            (M::Vmresume, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x01\xC3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(0), tail: None }
+            (M::And, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
             },
 
-            (M::Vmxoff, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x01\xC4" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(0), tail: None }
+            (M::And, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
             },
 
-            (M::Monitor, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x01\xC8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(1), tail: None }
+            (M::And, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
             },
 
-            (M::Mwait, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x01\xC9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(1), tail: None }
+            (M::And, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
             },
 
-            (M::Xgetbv, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x01\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(2), tail: None }
+            (M::Arpl, Os::B(_0@O::Reg(R(RT::W, 0..16)),_1@O::Reg(R(RT::W, 0..16)))) if opguard(&[_0,_1], &[2,2]) => {
+                Enc { pref: b"" , op: b"\x63" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Xsetbv, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x01\xD1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(2), tail: None }
+            (M::Arpl, Os::B(_0@O::Mem(MSz::Word, _),_1@O::Reg(R(RT::W, 0..16)))) if opguard(&[_0,_1], &[2,2]) => {
+                Enc { pref: b"" , op: b"\x63" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Swapgs, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x01\xF8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            (M::Bsf, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xBC" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Rdtscp, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x01\xF9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            (M::Bsf, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xBC" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Lar, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word), _2))) => {
-                Enc { pref: b"" , op: b"\x0F\x02" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
+            (M::Bsr, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xBD" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Lar, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long), _2)))) => {
-                Enc { pref: b"" , op: b"\x0F\x02" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
+            (M::Bsr, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xBD" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Lsl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word), _2))) => {
-                Enc { pref: b"" , op: b"\x0F\x03" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
+            (M::Bswap, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\xC8" , opi: OpI::new(szop, &[]), reg: Some(szop.reg()), rm: Erm::None, ext: None, tail: None }
             },
 
-            (M::Lsl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long), _2)))) => {
-                Enc { pref: b"" , op: b"\x0F\x03" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
+            (M::Bt, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xA3" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Loadall, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x05" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+            (M::Bt, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xA3" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Syscall, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x05" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+            (M::Bt, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xBA" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
             },
 
-            (M::Clts, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x06" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+            (M::Bt, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xBA" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
             },
 
-            (M::Loadall, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x07" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+            (M::Btc, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xBA" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: Some(_1) }
             },
 
-            (M::Sysret, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x07" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+            (M::Btc, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xBA" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: Some(_1) }
             },
 
-            (M::Invd, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x08" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+            (M::Btc, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xBB" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Wbinvd, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x09" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+            (M::Btc, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xBB" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Nop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x0D" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: None, tail: None }
+            (M::Btr, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xB3" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Nop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x0D" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: None, tail: None }
+            (M::Btr, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xB3" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: None, tail: None }
+            (M::Btr, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xBA" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
             },
 
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: None, tail: None }
+            (M::Btr, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xBA" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
             },
 
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: None }
+            (M::Bts, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xAB" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: None }
+            (M::Bts, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xAB" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(5), tail: None }
+            (M::Bts, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xBA" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: Some(_1) }
             },
 
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(5), tail: None }
+            (M::Bts, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xBA" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: Some(_1) }
             },
 
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: None }
+            (M::Call, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xE8" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
             },
 
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: None }
+            (M::Call, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(2), tail: None }
             },
 
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(7), tail: None }
+            (M::Call, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(2), tail: None }
             },
 
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(7), tail: None }
+            (M::Call, Os::A(_0@O::Reg(R(RT::Q, 0..16)))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
             },
 
-            (M::Prefetchnta, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
+            (M::Call, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
             },
 
-            (M::Prefetcht0, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Prefetcht1, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Prefetcht2, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x18" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x19" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x19" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1A" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1A" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1B" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1B" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1C" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1C" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1D" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1D" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1E" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1E" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: None, tail: None }
-            },
-
-            (M::Nop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: None }
-            },
-
-            (M::Nop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: None, tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(1), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(2), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(3), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(5), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(7), tail: None }
-            },
-
-            (M::HintNop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x0F\x1F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Wrmsr, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x30" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Rdtsc, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x31" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Rdmsr, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x32" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Rdpmc, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x33" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Sysenter, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x34" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Sysexit, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x35" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Getsec, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x37" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Invept, Os::B(O::Reg(R::Gpr(_0@(Sz::Long), _1)),O::Mem(_2@(Sz::Octw), _3))) => {
-                Enc { pref: b"\x66" , op: b"\x0F\x38\x80" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Invept, Os::B(O::Reg(R::Gpr(_0@(Sz::Quad), _1)),O::Mem(_2@(Sz::Octw), _3))) => {
-                Enc { pref: b"\x66" , op: b"\x0F\x38\x80" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Invvpid, Os::B(O::Reg(R::Gpr(_0@(Sz::Long), _1)),O::Mem(_2@(Sz::Octw), _3))) => {
-                Enc { pref: b"\x66" , op: b"\x0F\x38\x81" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Invvpid, Os::B(O::Reg(R::Gpr(_0@(Sz::Quad), _1)),O::Mem(_2@(Sz::Octw), _3))) => {
-                Enc { pref: b"\x66" , op: b"\x0F\x38\x81" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Movbe, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x38\xF0" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Crc32, Os::B(O::Reg(R::Gpr(sz@(Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), _2)))) => {
-                Enc { pref: b"\xF2" , op: b"\x0F\x38\xF0" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Crc32, Os::B(O::Reg(R::Gpr(sz@(Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Byte), _2))) => {
-                Enc { pref: b"\xF2" , op: b"\x0F\x38\xF0" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Movbe, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x38\xF1" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Crc32, Os::B(O::Reg(R::Gpr(_0@(Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) => {
-                Enc { pref: b"\xF2" , op: b"\x0F\x38\xF1" , sz: sz, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Crc32, Os::B(O::Reg(R::Gpr(_0@(Sz::Long | Sz::Quad), _1)),O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _2))) => {
-                Enc { pref: b"\xF2" , op: b"\x0F\x38\xF1" , sz: sz, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovo, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x40" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovo, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x40" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovno, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x41" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovno, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x41" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovb, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x42" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovb, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x42" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovnae, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x42" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovnae, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x42" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovc, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x42" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovc, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x42" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovnb, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x43" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovnb, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x43" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovae, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x43" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovae, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x43" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovnc, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x43" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovnc, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x43" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovz, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x44" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovz, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x44" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmove, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x44" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmove, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x44" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovnz, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x45" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovnz, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x45" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovne, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x45" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovne, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x45" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovbe, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x46" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovbe, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x46" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovna, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x46" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovna, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x46" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovnbe, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x47" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovnbe, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x47" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmova, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x47" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmova, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x47" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovs, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x48" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovs, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x48" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovns, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x49" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovns, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x49" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovp, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4A" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovp, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4A" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovpe, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4A" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovpe, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4A" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovnp, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovnp, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovpo, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovpo, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4C" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4C" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovnge, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4C" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovnge, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4C" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovnl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4D" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovnl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4D" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovge, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4D" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovge, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4D" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovle, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4E" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovle, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4E" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovng, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4E" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovng, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4E" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovnle, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4F" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovnle, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4F" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmovg, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4F" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmovg, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\x4F" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Emms, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\x77" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Vmread, Os::B(O::Reg(R::Gpr(_0@(Sz::Long), _1)),O::Reg(R::Gpr(_2@(Sz::Long), _3)))) => {
-                Enc { pref: b"" , op: b"\x0F\x78" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Vmread, Os::B(O::Mem(_0@(Sz::Long), _1),O::Reg(R::Gpr(_2@(Sz::Long), _3)))) => {
-                Enc { pref: b"" , op: b"\x0F\x78" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Vmread, Os::B(O::Reg(R::Gpr(_0@(Sz::Quad), _1)),O::Reg(R::Gpr(_2@(Sz::Quad), _3)))) => {
-                Enc { pref: b"" , op: b"\x0F\x78" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Vmread, Os::B(O::Mem(_0@(Sz::Quad), _1),O::Reg(R::Gpr(_2@(Sz::Quad), _3)))) => {
-                Enc { pref: b"" , op: b"\x0F\x78" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Vmwrite, Os::B(O::Reg(R::Gpr(_0@(Sz::Long), _1)),O::Reg(R::Gpr(_2@(Sz::Long), _3)))) => {
-                Enc { pref: b"" , op: b"\x0F\x79" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
-            },
-
-            (M::Vmwrite, Os::B(O::Reg(R::Gpr(_0@(Sz::Long), _1)),O::Mem(_2@(Sz::Long), _3))) => {
-                Enc { pref: b"" , op: b"\x0F\x79" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Vmwrite, Os::B(O::Reg(R::Gpr(_0@(Sz::Quad), _1)),O::Reg(R::Gpr(_2@(Sz::Quad), _3)))) => {
-                Enc { pref: b"" , op: b"\x0F\x79" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
-            },
-
-            (M::Vmwrite, Os::B(O::Reg(R::Gpr(_0@(Sz::Quad), _1)),O::Mem(_2@(Sz::Quad), _3))) => {
-                Enc { pref: b"" , op: b"\x0F\x79" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Jo, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x80" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jno, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x81" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jb, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x82" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jnae, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x82" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jc, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x82" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jnb, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x83" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jae, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x83" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jnc, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x83" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jz, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x84" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Je, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x84" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jnz, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x85" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jne, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x85" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jbe, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x86" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jna, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x86" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jnbe, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x87" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Ja, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x87" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Js, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x88" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jns, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x89" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jp, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8A" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jpe, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8A" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jnp, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8B" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jpo, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8B" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jl, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8C" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jnge, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8C" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jnl, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8D" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jge, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8D" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jle, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8E" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jng, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8E" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jnle, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8F" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jg, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x0F\x8F" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Seto, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x90" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Seto, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x90" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setno, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x91" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setno, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x91" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setb, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x92" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setb, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x92" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setnae, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x92" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setnae, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x92" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setc, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x92" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setc, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x92" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setnb, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x93" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setnb, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x93" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setae, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x93" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setae, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x93" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setnc, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x93" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setnc, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x93" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setz, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x94" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setz, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x94" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Sete, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x94" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Sete, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x94" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setnz, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x95" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setnz, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x95" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setne, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x95" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setne, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x95" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setbe, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x96" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setbe, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x96" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setna, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x96" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setna, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x96" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setnbe, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x97" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setnbe, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x97" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Seta, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x97" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Seta, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x97" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Sets, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x98" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Sets, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x98" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setns, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x99" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setns, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x99" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setp, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9A" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setp, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9A" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setpe, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9A" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setpe, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9A" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setnp, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9B" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setnp, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9B" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setpo, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9B" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setpo, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9B" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setl, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setl, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setnge, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setnge, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setnl, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setnl, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setge, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setge, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setle, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9E" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setle, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9E" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setng, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9E" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setng, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9E" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setnle, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setnle, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Setg, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\x0F\x9F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Setg, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\x9F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Cpuid, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\xA2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Bt, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xA3" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Bt, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xA3" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Shld, Os::C(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)),O::Imm(_4))) if _0.is(sz)&&_4.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xA4" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: Some(_4) }
-            },
-
-            (M::Shld, Os::C(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)),O::Imm(_4))) if _0.is(sz)&&_4.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xA4" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: Some(_4) }
-            },
-
-            (M::Shld, Os::C(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)),O::Reg(R::Gpr(_3@(Sz::Byte), 1)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xA5" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Shld, Os::C(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)),O::Reg(R::Gpr(_3@(Sz::Byte), 1)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xA5" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Rsm, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\xAA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Bts, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xAB" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Bts, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xAB" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Shrd, Os::C(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)),O::Imm(_4))) if _0.is(sz)&&_4.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xAC" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: Some(_4) }
-            },
-
-            (M::Shrd, Os::C(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)),O::Imm(_4))) if _0.is(sz)&&_4.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xAC" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: Some(_4) }
-            },
-
-            (M::Shrd, Os::C(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)),O::Reg(R::Gpr(_3@(Sz::Byte), 1)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xAD" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Shrd, Os::C(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)),O::Reg(R::Gpr(_3@(Sz::Byte), 1)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xAD" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Fxsave, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Fxrstor, Os::A(O::Mem(_16@(Sz::None), _17))) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_17.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Fxrstor, Os::A(O::Mem(_24@(Sz::None), _25))) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_25.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Ldmxcsr, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Stmxcsr, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Xsave, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Lfence, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::Xrstor, Os::A(O::Mem(_16@(Sz::None), _17))) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_17.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Xrstor, Os::A(O::Mem(_24@(Sz::None), _25))) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_25.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Mfence, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
-            },
-
-            (M::Sfence, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
-            },
-
-            (M::Clflush, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Imul, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xAF" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Imul, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xAF" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmpxchg, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_3@(Sz::Byte), _4)))) => {
-                Enc { pref: b"" , op: b"\x0F\xB0" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_4)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Cmpxchg, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_3@(Sz::Byte), _4)))) => {
-                Enc { pref: b"" , op: b"\x0F\xB0" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_4)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmpxchg, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _3)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xB1" , sz: sz, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Cmpxchg, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _3)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xB1" , sz: sz, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Lss, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xB2" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Btr, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xB3" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Btr, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xB3" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Lfs, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xB4" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Lgs, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xB5" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Movzx, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), _2)))) => {
-                Enc { pref: b"" , op: b"\x0F\xB6" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Movzx, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Byte), _2))) => {
-                Enc { pref: b"" , op: b"\x0F\xB6" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Movzx, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word), _2)))) => {
-                Enc { pref: b"" , op: b"\x0F\xB7" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Movzx, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word), _2))) => {
-                Enc { pref: b"" , op: b"\x0F\xB7" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Jmpe, Os::Z) => {
-                Enc { pref: b"" , op: b"\x0F\xB8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Popcnt, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"\xF3" , op: b"\x0F\xB8" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Popcnt, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"\xF3" , op: b"\x0F\xB8" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Bt, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xBA" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Bt, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xBA" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Bts, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xBA" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(5), tail: Some(_2) }
-            },
-
-            (M::Bts, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xBA" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(5), tail: Some(_2) }
-            },
-
-            (M::Btr, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xBA" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Btr, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xBA" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Btc, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xBA" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(7), tail: Some(_2) }
-            },
-
-            (M::Btc, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x0F\xBA" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(7), tail: Some(_2) }
-            },
-
-            (M::Btc, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xBB" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Btc, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xBB" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Bsf, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xBC" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Bsf, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xBC" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Tzcnt, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"\xF3" , op: b"\x0F\xBC" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Tzcnt, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"\xF3" , op: b"\x0F\xBC" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Bsr, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xBD" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Bsr, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xBD" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Lzcnt, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"\xF3" , op: b"\x0F\xBD" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Lzcnt, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"\xF3" , op: b"\x0F\xBD" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Movsx, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), _2)))) => {
-                Enc { pref: b"" , op: b"\x0F\xBE" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Movsx, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Byte), _2))) => {
-                Enc { pref: b"" , op: b"\x0F\xBE" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Movsx, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word), _2)))) => {
-                Enc { pref: b"" , op: b"\x0F\xBF" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Movsx, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word), _2))) => {
-                Enc { pref: b"" , op: b"\x0F\xBF" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Xadd, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x0F\xC0" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Xadd, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x0F\xC0" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Xadd, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xC1" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Xadd, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xC1" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Movnti, Os::B(O::Mem(sz@(Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x0F\xC3" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_0.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmpxchg8b, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\xC7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Cmpxchg16b, Os::A(O::Mem(_0@(Sz::Octw), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\xC7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Vmptrld, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\xC7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Vmclear, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"\x66" , op: b"\x0F\xC7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Vmxon, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"\xF3" , op: b"\x0F\xC7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Vmptrst, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\x0F\xC7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Bswap, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)))) => {
-                Enc { pref: b"" , op: b"\x0F\xC8" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x10" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Adc, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x10" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x11" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Adc, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x11" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x12" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\x12" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x13" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x13" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x14" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), 0)),O::Imm(_1))) if Sz::from_vds(_1.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x15" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x18" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Sbb, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x18" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x19" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Sbb, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x19" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x1A" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\x1A" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x1B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x1B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x1C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), 0)),O::Imm(_1))) if Sz::from_vds(_1.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x1D" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x20" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::And, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x20" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x21" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::And, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x21" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x22" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\x22" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x23" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x23" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x24" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), 0)),O::Imm(_1))) if Sz::from_vds(_1.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x25" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x28" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Sub, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x28" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x29" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Sub, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x29" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x2A" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\x2A" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x2B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x2B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x2C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), 0)),O::Imm(_1))) if Sz::from_vds(_1.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x2D" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x30" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Xor, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x30" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x31" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Xor, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x31" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x32" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\x32" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x33" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x33" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x34" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), 0)),O::Imm(_1))) if Sz::from_vds(_1.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x35" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x38" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Cmp, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x38" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x39" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Cmp, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x39" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x3A" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\x3A" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x3B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x3B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x3C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), 0)),O::Imm(_1))) if Sz::from_vds(_1.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x3D" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Inc, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x40" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Dec, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x48" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Push, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _1)))) => {
-                Enc { pref: b"" , op: b"\x50" , sz: sz, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Push, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Quad), _1)))) => {
-                Enc { pref: b"" , op: b"\x50" , sz: sz, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Pop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x58" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Pop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Quad), _0)))) => {
-                Enc { pref: b"" , op: b"\x58" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Arpl, Os::B(O::Reg(R::Gpr(_0@(Sz::Word), _1)),O::Reg(R::Gpr(_2@(Sz::Word), _3)))) => {
-                Enc { pref: b"" , op: b"\x63" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Arpl, Os::B(O::Mem(_0@(Sz::Word), _1),O::Reg(R::Gpr(_2@(Sz::Word), _3)))) => {
-                Enc { pref: b"" , op: b"\x63" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Movsxd, Os::B(O::Reg(R::Gpr(sz@(Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Long), _2)))) => {
-                Enc { pref: b"" , op: b"\x63" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Movsxd, Os::B(O::Reg(R::Gpr(sz@(Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Long), _2))) => {
-                Enc { pref: b"" , op: b"\x63" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Push, Os::A(O::Imm(_1))) if matches!(Sz::from_len(_1.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\x68" , sz: Sz::from_len(_1.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Imul, Os::C(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)),O::Imm(_4))) if _1.is(sz)&&Sz::from_vds(_4.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x69" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: Some(_4) }
-            },
-
-            (M::Imul, Os::C(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2),O::Imm(_4))) if _1.is(sz)&&Sz::from_vds(_4.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x69" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: Some(_4) }
-            },
-
-            (M::Push, Os::A(O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x6A" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Imul, Os::C(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)),O::Imm(_4))) if _1.is(sz)&&_4.len == 1 => {
-                Enc { pref: b"" , op: b"\x6B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: Some(_4) }
-            },
-
-            (M::Imul, Os::C(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2),O::Imm(_4))) if _1.is(sz)&&_4.len == 1 => {
-                Enc { pref: b"" , op: b"\x6B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: Some(_4) }
-            },
-
-            (M::Insb, Os::Z) => {
-                Enc { pref: b"" , op: b"\x6C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Insw, Os::Z) => {
-                Enc { pref: b"" , op: b"\x6D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Insd, Os::Z) => {
-                Enc { pref: b"" , op: b"\x6D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Outsb, Os::Z) => {
-                Enc { pref: b"" , op: b"\x6E" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Outsw, Os::Z) => {
-                Enc { pref: b"" , op: b"\x6F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Outsd, Os::Z) => {
-                Enc { pref: b"" , op: b"\x6F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Jo, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x70" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jno, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x71" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jb, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x72" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jnae, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x72" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jc, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x72" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jnb, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x73" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jae, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x73" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jnc, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x73" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jz, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x74" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Je, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x74" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jnz, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x75" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jne, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x75" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jbe, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x76" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jna, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x76" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jnbe, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x77" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Ja, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x77" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Js, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x78" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jns, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x79" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jp, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7A" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jpe, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7A" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jnp, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7B" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jpo, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7B" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jl, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jnge, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jnl, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jge, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jle, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7E" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jng, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7E" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jnle, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jg, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\x7F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Add, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: Some(_3) }
-            },
-
-            (M::Add, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: Some(_3) }
-            },
-
-            (M::Or, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(1), tail: Some(_3) }
-            },
-
-            (M::Or, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: Some(_3) }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(2), tail: Some(_3) }
-            },
-
-            (M::Adc, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: Some(_3) }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(3), tail: Some(_3) }
-            },
-
-            (M::Sbb, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: Some(_3) }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(4), tail: Some(_3) }
-            },
-
-            (M::And, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: Some(_3) }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(5), tail: Some(_3) }
-            },
-
-            (M::Sub, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: Some(_3) }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(6), tail: Some(_3) }
-            },
-
-            (M::Xor, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: Some(_3) }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(7), tail: Some(_3) }
-            },
-
-            (M::Cmp, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\x80" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: Some(_3) }
-            },
-
-            (M::Add, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Add, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Or, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(1), tail: Some(_2) }
-            },
-
-            (M::Or, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(1), tail: Some(_2) }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(2), tail: Some(_2) }
-            },
-
-            (M::Adc, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(2), tail: Some(_2) }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(3), tail: Some(_2) }
-            },
-
-            (M::Sbb, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(3), tail: Some(_2) }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::And, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(5), tail: Some(_2) }
-            },
-
-            (M::Sub, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(5), tail: Some(_2) }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Xor, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(7), tail: Some(_2) }
-            },
-
-            (M::Cmp, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\x81" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(7), tail: Some(_2) }
-            },
-
-            (M::Add, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Add, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Or, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(1), tail: Some(_2) }
-            },
-
-            (M::Or, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(1), tail: Some(_2) }
-            },
-
-            (M::Adc, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(2), tail: Some(_2) }
-            },
-
-            (M::Adc, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(2), tail: Some(_2) }
-            },
-
-            (M::Sbb, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(3), tail: Some(_2) }
-            },
-
-            (M::Sbb, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(3), tail: Some(_2) }
-            },
-
-            (M::And, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::And, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Sub, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(5), tail: Some(_2) }
-            },
-
-            (M::Sub, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(5), tail: Some(_2) }
-            },
-
-            (M::Xor, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Xor, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Cmp, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(7), tail: Some(_2) }
-            },
-
-            (M::Cmp, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\x83" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(7), tail: Some(_2) }
-            },
-
-            (M::Test, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x84" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Test, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x84" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Test, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x85" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Test, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x85" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Xchg, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x86" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
-            },
-
-            (M::Xchg, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\x86" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Xchg, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x87" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Xchg, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x87" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Mov, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x88" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Mov, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x88" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_3)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Mov, Os::B(O::Reg(R::Gpr(_0@(Sz::Word | Sz::Long | Sz::Quad), _1)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x89" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Gpr(Gpr(_1)), ext: None, tail: None }
-            },
-
-            (M::Mov, Os::B(O::Mem(_0@(Sz::Word | Sz::Long | Sz::Quad), _1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _0.is(sz) => {
-                Enc { pref: b"" , op: b"\x89" , sz: sz, rex_w: false, reg: Some(Gpr(_2)), rm: Erm::Mem(_1.encoding()), ext: None, tail: None }
-            },
-
-            (M::Mov, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\x8A" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Gpr(Gpr(_3)), ext: None, tail: None }
-            },
-
-            (M::Mov, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\x8A" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::Mem(_3.encoding()), ext: None, tail: None }
-            },
-
-            (M::Mov, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), _2)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x8B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Gpr(Gpr(_2)), ext: None, tail: None }
-            },
-
-            (M::Mov, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::Word | Sz::Long | Sz::Quad), _2))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x8B" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Lea, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Mem(_1@(Sz::None), _2))) => {
-                Enc { pref: b"" , op: b"\x8D" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::Mem(_2.encoding()), ext: None, tail: None }
-            },
-
-            (M::Pop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\x8F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: None }
-            },
-
-            (M::Pop, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\x8F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Pop, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Quad), _0)))) => {
-                Enc { pref: b"" , op: b"\x8F" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: None }
-            },
-
-            (M::Pop, Os::A(O::Mem(sz@(Sz::Word | Sz::Quad), _0))) => {
-                Enc { pref: b"" , op: b"\x8F" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Xchg, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Word | Sz::Long | Sz::Quad), 0)))) if _1.is(sz) => {
-                Enc { pref: b"" , op: b"\x90" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Nop, Os::Z) => {
-                Enc { pref: b"" , op: b"\x90" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Nop, Os::Z) => {
-                Enc { pref: b"\xF3" , op: b"\x90" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Pause, Os::Z) => {
-                Enc { pref: b"\xF3" , op: b"\x90" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+            (M::Callf, Os::A(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(3), tail: None }
             },
 
             (M::Cbw, Os::Z) => {
-                Enc { pref: b"" , op: b"\x98" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Cwde, Os::Z) => {
-                Enc { pref: b"" , op: b"\x98" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Cdqe, Os::Z) => {
-                Enc { pref: b"" , op: b"\x98" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Cwd, Os::Z) => {
-                Enc { pref: b"" , op: b"\x99" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+                Enc { pref: b"" , op: b"\x98" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
             (M::Cdq, Os::Z) => {
-                Enc { pref: b"" , op: b"\x99" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+                Enc { pref: b"" , op: b"\x99" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
-            (M::Cqo, Os::Z) => {
-                Enc { pref: b"" , op: b"\x99" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Fwait, Os::Z) => {
-                Enc { pref: b"" , op: b"\x9B" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Wait, Os::Z) => {
-                Enc { pref: b"" , op: b"\x9B" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Pushf, Os::Z) => {
-                Enc { pref: b"" , op: b"\x9C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Pushfd, Os::Z) => {
-                Enc { pref: b"" , op: b"\x9C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Pushfq, Os::Z) => {
-                Enc { pref: b"" , op: b"\x9C" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Popf, Os::Z) => {
-                Enc { pref: b"" , op: b"\x9D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Popfd, Os::Z) => {
-                Enc { pref: b"" , op: b"\x9D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Popfq, Os::Z) => {
-                Enc { pref: b"" , op: b"\x9D" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Sahf, Os::Z) => {
-                Enc { pref: b"" , op: b"\x9E" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Lahf, Os::Z) => {
-                Enc { pref: b"" , op: b"\x9F" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Movsb, Os::Z) => {
-                Enc { pref: b"" , op: b"\xA4" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Movsw, Os::Z) => {
-                Enc { pref: b"" , op: b"\xA5" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Movsd, Os::Z) => {
-                Enc { pref: b"" , op: b"\xA5" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Movsq, Os::Z) => {
-                Enc { pref: b"" , op: b"\xA5" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Cmpsb, Os::Z) => {
-                Enc { pref: b"" , op: b"\xA6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Cmpsw, Os::Z) => {
-                Enc { pref: b"" , op: b"\xA7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Cmpsd, Os::Z) => {
-                Enc { pref: b"" , op: b"\xA7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Cmpsq, Os::Z) => {
-                Enc { pref: b"" , op: b"\xA7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Test, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xA8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Test, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), 0)),O::Imm(_1))) if Sz::from_vds(_1.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\xA9" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Stosb, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Stosw, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Stosd, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Stosq, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Lodsb, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Lodsw, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Lodsd, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Lodsq, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Scasb, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Scasw, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Scasd, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Scasq, Os::Z) => {
-                Enc { pref: b"" , op: b"\xAF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Mov, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xB0" , sz: Sz::None, rex_w: false, reg: Some(Gpr(_1)), rm: Erm::None, ext: None, tail: Some(_3) }
-            },
-
-            (M::Mov, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vqp(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\xB8" , sz: sz, rex_w: false, reg: Some(Gpr(_0)), rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Rol, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: Some(_3) }
-            },
-
-            (M::Rol, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: Some(_3) }
-            },
-
-            (M::Ror, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(1), tail: Some(_3) }
-            },
-
-            (M::Ror, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: Some(_3) }
-            },
-
-            (M::Rcl, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(2), tail: Some(_3) }
-            },
-
-            (M::Rcl, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: Some(_3) }
-            },
-
-            (M::Rcr, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(3), tail: Some(_3) }
-            },
-
-            (M::Rcr, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: Some(_3) }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(4), tail: Some(_3) }
-            },
-
-            (M::Shl, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: Some(_3) }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(6), tail: Some(_3) }
-            },
-
-            (M::Shl, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: Some(_3) }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(4), tail: Some(_3) }
-            },
-
-            (M::Sal, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: Some(_3) }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(6), tail: Some(_3) }
-            },
-
-            (M::Sal, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: Some(_3) }
-            },
-
-            (M::Shr, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(5), tail: Some(_3) }
-            },
-
-            (M::Shr, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: Some(_3) }
-            },
-
-            (M::Sar, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(7), tail: Some(_3) }
-            },
-
-            (M::Sar, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: Some(_3) }
-            },
-
-            (M::Rol, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Rol, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Ror, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(1), tail: Some(_2) }
-            },
-
-            (M::Ror, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(1), tail: Some(_2) }
-            },
-
-            (M::Rcl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(2), tail: Some(_2) }
-            },
-
-            (M::Rcl, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(2), tail: Some(_2) }
-            },
-
-            (M::Rcr, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(3), tail: Some(_2) }
-            },
-
-            (M::Rcr, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(3), tail: Some(_2) }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Shl, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Shl, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Sal, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Sal, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Shr, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(5), tail: Some(_2) }
-            },
-
-            (M::Shr, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(5), tail: Some(_2) }
-            },
-
-            (M::Sar, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(7), tail: Some(_2) }
-            },
-
-            (M::Sar, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xC1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(7), tail: Some(_2) }
-            },
-
-            (M::Retn, Os::A(O::Imm(_2))) if _2.len == 2 => {
-                Enc { pref: b"" , op: b"\xC2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Retn, Os::Z) => {
-                Enc { pref: b"" , op: b"\xC3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Mov, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: Some(_3) }
-            },
-
-            (M::Mov, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xC6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: Some(_3) }
-            },
-
-            (M::Mov, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\xC7" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Mov, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\xC7" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Enter, Os::B(O::Imm(_3),O::Imm(_5))) if _3.len == 2&&_5.len == 1 => {
-                Enc { pref: b"" , op: b"\xC8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(Template::merged([_3,_5])) }
-            },
-
-            (M::Leave, Os::Z) => {
-                Enc { pref: b"" , op: b"\xC9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Retf, Os::A(O::Imm(_1))) if _1.len == 2 => {
-                Enc { pref: b"" , op: b"\xCA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Retf, Os::Z) => {
-                Enc { pref: b"" , op: b"\xCB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Int, Os::A(O::Imm(_2))) if _2.is_le_int(3) => {
-                Enc { pref: b"" , op: b"\xCC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Int, Os::A(O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xCD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Iret, Os::Z) => {
-                Enc { pref: b"" , op: b"\xCF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Iretd, Os::Z) => {
-                Enc { pref: b"" , op: b"\xCF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Iretq, Os::Z) => {
-                Enc { pref: b"" , op: b"\xCF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Rol, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: Some(_3) }
-            },
-
-            (M::Rol, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: Some(_3) }
-            },
-
-            (M::Ror, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(1), tail: Some(_3) }
-            },
-
-            (M::Ror, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: Some(_3) }
-            },
-
-            (M::Rcl, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(2), tail: Some(_3) }
-            },
-
-            (M::Rcl, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: Some(_3) }
-            },
-
-            (M::Rcr, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(3), tail: Some(_3) }
-            },
-
-            (M::Rcr, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: Some(_3) }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(4), tail: Some(_3) }
-            },
-
-            (M::Shl, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: Some(_3) }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(6), tail: Some(_3) }
-            },
-
-            (M::Shl, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: Some(_3) }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(4), tail: Some(_3) }
-            },
-
-            (M::Sal, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: Some(_3) }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(6), tail: Some(_3) }
-            },
-
-            (M::Sal, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: Some(_3) }
-            },
-
-            (M::Shr, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(5), tail: Some(_3) }
-            },
-
-            (M::Shr, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: Some(_3) }
-            },
-
-            (M::Sar, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(7), tail: Some(_3) }
-            },
-
-            (M::Sar, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: Some(_3) }
-            },
-
-            (M::Rol, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Rol, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Ror, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(1), tail: Some(_2) }
-            },
-
-            (M::Ror, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(1), tail: Some(_2) }
-            },
-
-            (M::Rcl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(2), tail: Some(_2) }
-            },
-
-            (M::Rcl, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(2), tail: Some(_2) }
-            },
-
-            (M::Rcr, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(3), tail: Some(_2) }
-            },
-
-            (M::Rcr, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(3), tail: Some(_2) }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Shl, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Shl, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Sal, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: Some(_2) }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Sal, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: Some(_2) }
-            },
-
-            (M::Shr, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(5), tail: Some(_2) }
-            },
-
-            (M::Shr, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(5), tail: Some(_2) }
-            },
-
-            (M::Sar, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(7), tail: Some(_2) }
-            },
-
-            (M::Sar, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if _2.is_le_int(1) => {
-                Enc { pref: b"" , op: b"\xD1" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(7), tail: Some(_2) }
-            },
-
-            (M::Rol, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
-            },
-
-            (M::Rol, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Ror, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(1), tail: None }
-            },
-
-            (M::Ror, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Rcl, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(2), tail: None }
-            },
-
-            (M::Rcl, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Rcr, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(3), tail: None }
-            },
-
-            (M::Rcr, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(4), tail: None }
-            },
-
-            (M::Shl, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(6), tail: None }
-            },
-
-            (M::Shl, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(4), tail: None }
-            },
-
-            (M::Sal, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(6), tail: None }
-            },
-
-            (M::Sal, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Shr, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(5), tail: None }
-            },
-
-            (M::Shr, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Sar, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(7), tail: None }
-            },
-
-            (M::Sar, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Reg(R::Gpr(_2@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Rol, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: None }
-            },
-
-            (M::Rol, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Ror, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(1), tail: None }
-            },
-
-            (M::Ror, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Rcl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(2), tail: None }
-            },
-
-            (M::Rcl, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Rcr, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(3), tail: None }
-            },
-
-            (M::Rcr, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: None }
-            },
-
-            (M::Shl, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Shl, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: None }
-            },
-
-            (M::Shl, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: None }
-            },
-
-            (M::Sal, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Sal, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(6), tail: None }
-            },
-
-            (M::Sal, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Shr, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(5), tail: None }
-            },
-
-            (M::Shr, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Sar, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(7), tail: None }
-            },
-
-            (M::Sar, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Reg(R::Gpr(_1@(Sz::Byte), 1)))) => {
-                Enc { pref: b"" , op: b"\xD3" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Xlatb, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Fadd, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xD8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Fmul, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xD8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Fsub, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xD8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Fsubr, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xD8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Fdiv, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xD8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Fdivr, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xD8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Fcom, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD8\xD1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(2), tail: None }
-            },
-
-            (M::Fcomp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD8\xD9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(3), tail: None }
-            },
-
-            (M::Fst, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xD9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Fstp, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xD9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Fldenv, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\xD9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Fldcw, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xD9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Fnstenv, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\xD9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Fstenv, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"\x9B" , op: b"\xD9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Fnstcw, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xD9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Fstcw, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"\x9B" , op: b"\xD9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Fxch, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xC9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(1), tail: None }
-            },
-
-            (M::Fnop, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xD0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(2), tail: None }
-            },
-
-            (M::Fchs, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xE0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fabs, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xE1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Ftst, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xE4" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fxam, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xE5" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fld1, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xE8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::Fldl2t, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xE9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::Fldl2e, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xEA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::Fldpi, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xEB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::Fldlg2, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xEC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::Fldln2, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xED" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::Fldz, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xEE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::F2xm1, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xF0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
-            },
-
-            (M::Fyl2x, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xF1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
-            },
-
-            (M::Fptan, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xF2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
-            },
-
-            (M::Fpatan, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xF3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
-            },
-
-            (M::Fxtract, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xF4" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
-            },
-
-            (M::Fprem1, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xF5" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
-            },
-
-            (M::Fdecstp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
-            },
-
-            (M::Fincstp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xF7" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
-            },
-
-            (M::Fprem, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xF8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
-            },
-
-            (M::Fyl2xp1, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xF9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
-            },
-
-            (M::Fsqrt, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xFA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
-            },
-
-            (M::Fsincos, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xFB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
-            },
-
-            (M::Frndint, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xFC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
-            },
-
-            (M::Fscale, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xFD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
-            },
-
-            (M::Fsin, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xFE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
-            },
-
-            (M::Fcos, Os::Z) => {
-                Enc { pref: b"" , op: b"\xD9\xFF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
-            },
-
-            (M::Fiadd, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Fimul, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Ficom, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Ficomp, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Fisub, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Fisubr, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Fidiv, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Fidivr, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Fucompp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDA\xE9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::Fld, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\xDB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Fstp, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\xDB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Fild, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Fisttp, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Fist, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Fistp, Os::A(O::Mem(_0@(Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xDB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Fneni, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDB\xE0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Feni, Os::Z) => {
-                Enc { pref: b"\x9B" , op: b"\xDB\xE0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fndisi, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDB\xE1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fdisi, Os::Z) => {
-                Enc { pref: b"\x9B" , op: b"\xDB\xE1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fnclex, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDB\xE2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fclex, Os::Z) => {
-                Enc { pref: b"\x9B" , op: b"\xDB\xE2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fninit, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDB\xE3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Finit, Os::Z) => {
-                Enc { pref: b"\x9B" , op: b"\xDB\xE3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fnsetpm, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDB\xE4" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fsetpm, Os::Z) => {
-                Enc { pref: b"\x9B" , op: b"\xDB\xE4" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fadd, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Fmul, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Fcom, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Fcomp, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Fsub, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Fsubr, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Fdiv, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Fdivr, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Fld, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Fst, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Fstp, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Fisttp, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Frstor, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\xDD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Fnsave, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\xDD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Fsave, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"\x9B" , op: b"\xDD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Fnstsw, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Fstsw, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"\x9B" , op: b"\xDD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Fucom, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDD\xE1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fucomp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDD\xE9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::Fiadd, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Fimul, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Ficom, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Ficomp, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Fisub, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Fisubr, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Fidiv, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Fidivr, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Faddp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDE\xC1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(0), tail: None }
-            },
-
-            (M::Fmulp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDE\xC9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(1), tail: None }
-            },
-
-            (M::Fcompp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDE\xD9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(3), tail: None }
-            },
-
-            (M::Fsubrp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDE\xE1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fsubp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDE\xE9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(5), tail: None }
-            },
-
-            (M::Fdivrp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDE\xF1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(6), tail: None }
-            },
-
-            (M::Fdivp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xDE\xF9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(7), tail: None }
-            },
-
-            (M::Fild, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
-            },
-
-            (M::Fild, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Fisttp, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
-            },
-
-            (M::Fist, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Fistp, Os::A(O::Mem(_0@(Sz::Word), _1))) => {
-                Enc { pref: b"" , op: b"\xDF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Fistp, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xDF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Fbld, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\xDF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Fbstp, Os::A(O::Mem(_0@(Sz::None), _1))) => {
-                Enc { pref: b"" , op: b"\xDF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Fnstsw, Os::A(O::Reg(R::Gpr(_0@(Sz::Word), 0)))) => {
-                Enc { pref: b"" , op: b"\xDF\xE0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Fstsw, Os::A(O::Reg(R::Gpr(_0@(Sz::Word), 0)))) => {
-                Enc { pref: b"\x9B" , op: b"\xDF\xE0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: Some(4), tail: None }
-            },
-
-            (M::Loopnz, Os::A(O::Rel(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xE0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Loopne, Os::A(O::Rel(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xE0" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Loopz, Os::A(O::Rel(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xE1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Loope, Os::A(O::Rel(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xE1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Loop, Os::A(O::Rel(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xE2" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::Jcxz, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\xE3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jecxz, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\xE3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jrcxz, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\xE3" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::In, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Imm(_2))) if _2.len == 1 => {
-                Enc { pref: b"" , op: b"\xE4" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
-            },
-
-            (M::In, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), 0)),O::Imm(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\xE5" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Out, Os::B(O::Imm(_1),O::Reg(R::Gpr(_2@(Sz::Byte), 0)))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\xE6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Out, Os::B(O::Imm(_1),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), 0)))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\xE7" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Call, Os::A(O::Rel(_1))) if matches!(Sz::from_len(_1.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\xE8" , sz: Sz::from_len(_1.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::Jmp, Os::A(O::Rel(_0))) if matches!(Sz::from_len(_0.len), Sz::Word | Sz::Long) => {
-                Enc { pref: b"" , op: b"\xE9" , sz: Sz::from_len(_0.len), rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
-            },
-
-            (M::Jmp, Os::A(O::Rel(_1))) if _1.len == 1 => {
-                Enc { pref: b"" , op: b"\xEB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
-            },
-
-            (M::In, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), 0)),O::Reg(R::Gpr(_1@(Sz::Word), 2)))) => {
-                Enc { pref: b"" , op: b"\xEC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::In, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), 0)),O::Reg(R::Gpr(_0@(Sz::Word), 2)))) => {
-                Enc { pref: b"" , op: b"\xED" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Out, Os::B(O::Reg(R::Gpr(_0@(Sz::Word), 2)),O::Reg(R::Gpr(_1@(Sz::Byte), 0)))) => {
-                Enc { pref: b"" , op: b"\xEE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Out, Os::B(O::Reg(R::Gpr(_0@(Sz::Word), 2)),O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), 0)))) => {
-                Enc { pref: b"" , op: b"\xEF" , sz: sz, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Int1, Os::Z) => {
-                Enc { pref: b"" , op: b"\xF1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Icebp, Os::Z) => {
-                Enc { pref: b"" , op: b"\xF1" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Hlt, Os::Z) => {
-                Enc { pref: b"" , op: b"\xF4" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Cmc, Os::Z) => {
-                Enc { pref: b"" , op: b"\xF5" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Imul, Os::A(O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_3)), ext: Some(5), tail: None }
-            },
-
-            (M::Imul, Os::A(O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_3.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Test, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: Some(_3) }
-            },
-
-            (M::Test, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: Some(_3) }
-            },
-
-            (M::Test, Os::B(O::Reg(R::Gpr(_0@(Sz::Byte), _1)),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(1), tail: Some(_3) }
-            },
-
-            (M::Test, Os::B(O::Mem(_0@(Sz::Byte), _1),O::Imm(_3))) if _3.len == 1 => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: Some(_3) }
-            },
-
-            (M::Not, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(2), tail: None }
-            },
-
-            (M::Not, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Neg, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(3), tail: None }
-            },
-
-            (M::Neg, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Mul, Os::A(O::Reg(R::Gpr(_2@(Sz::Byte), _3)))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_3)), ext: Some(4), tail: None }
-            },
-
-            (M::Mul, Os::A(O::Mem(_2@(Sz::Byte), _3))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_3.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Div, Os::A(O::Reg(R::Gpr(_3@(Sz::Byte), _4)))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_4)), ext: Some(6), tail: None }
-            },
-
-            (M::Div, Os::A(O::Mem(_3@(Sz::Byte), _4))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_4.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Idiv, Os::A(O::Reg(R::Gpr(_3@(Sz::Byte), _4)))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_4)), ext: Some(7), tail: None }
-            },
-
-            (M::Idiv, Os::A(O::Mem(_3@(Sz::Byte), _4))) => {
-                Enc { pref: b"" , op: b"\xF6" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_4.encoding()), ext: Some(7), tail: None }
-            },
-
-            (M::Imul, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_2)), ext: Some(5), tail: None }
-            },
-
-            (M::Imul, Os::A(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _2))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_2.encoding()), ext: Some(5), tail: None }
-            },
-
-            (M::Test, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Test, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: Some(_2) }
-            },
-
-            (M::Test, Os::B(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(1), tail: Some(_2) }
-            },
-
-            (M::Test, Os::B(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0),O::Imm(_2))) if Sz::from_vds(_2.len).cmp(&sz) <= 0 => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(1), tail: Some(_2) }
-            },
-
-            (M::Not, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(2), tail: None }
-            },
-
-            (M::Not, Os::A(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(2), tail: None }
-            },
-
-            (M::Neg, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(3), tail: None }
-            },
-
-            (M::Neg, Os::A(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(3), tail: None }
-            },
-
-            (M::Mul, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_2)), ext: Some(4), tail: None }
-            },
-
-            (M::Mul, Os::A(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _2))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_2.encoding()), ext: Some(4), tail: None }
-            },
-
-            (M::Div, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_2)), ext: Some(6), tail: None }
-            },
-
-            (M::Div, Os::A(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _2))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_2.encoding()), ext: Some(6), tail: None }
-            },
-
-            (M::Idiv, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _2)))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_2)), ext: Some(7), tail: None }
-            },
-
-            (M::Idiv, Os::A(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _2))) => {
-                Enc { pref: b"" , op: b"\xF7" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_2.encoding()), ext: Some(7), tail: None }
+            (M::Cdqe, Os::Z) => {
+                Enc { pref: b"" , op: b"\x98" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
             (M::Clc, Os::Z) => {
-                Enc { pref: b"" , op: b"\xF8" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Stc, Os::Z) => {
-                Enc { pref: b"" , op: b"\xF9" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Cli, Os::Z) => {
-                Enc { pref: b"" , op: b"\xFA" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
-            },
-
-            (M::Sti, Os::Z) => {
-                Enc { pref: b"" , op: b"\xFB" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+                Enc { pref: b"" , op: b"\xF8" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
             (M::Cld, Os::Z) => {
-                Enc { pref: b"" , op: b"\xFC" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+                Enc { pref: b"" , op: b"\xFC" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Clflush, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xAE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Cli, Os::Z) => {
+                Enc { pref: b"" , op: b"\xFA" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Clts, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x06" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Cmc, Os::Z) => {
+                Enc { pref: b"" , op: b"\xF5" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Cmova, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x47" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmova, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x47" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovae, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x43" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovae, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x43" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovb, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x42" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovb, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x42" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovbe, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x46" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovbe, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x46" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovc, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x42" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovc, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x42" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmove, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x44" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmove, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x44" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovg, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4F" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovg, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4F" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovge, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4D" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovge, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4D" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4C" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4C" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovle, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4E" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovle, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4E" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovna, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x46" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovna, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x46" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnae, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x42" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnae, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x42" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnb, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x43" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnb, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x43" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnbe, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x47" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnbe, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x47" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnc, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x43" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnc, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x43" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovne, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x45" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovne, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x45" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovng, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4E" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovng, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4E" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnge, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4C" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnge, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4C" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4D" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4D" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnle, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4F" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnle, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4F" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovno, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x41" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovno, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x41" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnp, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnp, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovns, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x49" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovns, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x49" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnz, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x45" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovnz, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x45" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovo, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x40" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovo, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x40" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovp, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4A" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovp, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4A" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovpe, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4A" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovpe, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4A" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovpo, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovpo, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x4B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovs, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x48" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovs, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x48" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovz, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x44" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmovz, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x44" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmp, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x38" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmp, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x38" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmp, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x39" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmp, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x39" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmp, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x3A" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmp, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x3A" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmp, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x3B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmp, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x3B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmp, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x3C" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
+            },
+
+            (M::Cmp, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x3D" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Cmp, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(7), tail: Some(_2) }
+            },
+
+            (M::Cmp, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(7), tail: Some(_2) }
+            },
+
+            (M::Cmp, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: Some(_1) }
+            },
+
+            (M::Cmp, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: Some(_1) }
+            },
+
+            (M::Cmp, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: Some(_1) }
+            },
+
+            (M::Cmp, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: Some(_1) }
+            },
+
+            (M::Cmpsb, Os::Z) => {
+                Enc { pref: b"" , op: b"\xA6" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Cmpsd, Os::Z) => {
+                Enc { pref: b"" , op: b"\xA7" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Cmpsq, Os::Z) => {
+                Enc { pref: b"" , op: b"\xA7" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Cmpsw, Os::Z) => {
+                Enc { pref: b"" , op: b"\xA7" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Cmpxchg, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xB0" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmpxchg, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xB0" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmpxchg, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xB1" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmpxchg, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xB1" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Cmpxchg16b, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[16]) => {
+                Enc { pref: b"" , op: b"\x0F\xC7" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Cmpxchg8b, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"" , op: b"\x0F\xC7" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Cpuid, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\xA2" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Cqo, Os::Z) => {
+                Enc { pref: b"" , op: b"\x99" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Crc32, Os::B(_0@O::Reg(R(RT::D | RT::Q, 0..16)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[12,1]) => {
+                Enc { pref: b"\xF2" , op: b"\x0F\x38\xF0" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Crc32, Os::B(_0@O::Reg(R(RT::D | RT::Q, 0..16)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[12,1]) => {
+                Enc { pref: b"\xF2" , op: b"\x0F\x38\xF0" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Crc32, Os::B(_0@O::Reg(R(RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[12]) => {
+                Enc { pref: b"\xF2" , op: b"\x0F\x38\xF1" , opi: OpI::new(szop, &[_0]), reg: Some(_0.reg()), rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::Crc32, Os::B(_0@O::Reg(R(RT::D | RT::Q, 0..16)),szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[12]) => {
+                Enc { pref: b"\xF2" , op: b"\x0F\x38\xF1" , opi: OpI::new(szop, &[_0]), reg: Some(_0.reg()), rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::Cwd, Os::Z) => {
+                Enc { pref: b"" , op: b"\x99" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Cwde, Os::Z) => {
+                Enc { pref: b"" , op: b"\x98" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Dec, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x48" , opi: OpI::new(szop, &[]), reg: Some(szop.reg()), rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Dec, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xFE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Dec, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xFE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Dec, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Dec, Os::A(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Div, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Div, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Div, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Div, Os::A(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Emms, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x77" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Enter, Os::B(_0@O::Imm(_1),_2@O::Imm(_3))) if opguard(&[_0,_2], &[2,1]) => {
+                Enc { pref: b"" , op: b"\xC8" , opi: OpI::unsz(&[_0,_2]), reg: None, rm: Erm::None, ext: None, tail: Some(Template::merged([_1,_3])) }
+            },
+
+            (M::F2xm1, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xF0" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Fabs, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xE1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fadd, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xD8" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Fadd, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDC" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Faddp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDE\xC1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(0), tail: None }
+            },
+
+            (M::Fbld, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\xDF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Fbstp, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\xDF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Fchs, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xE0" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fclex, Os::Z) => {
+                Enc { pref: b"\x9B" , op: b"\xDB\xE2" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fcom, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD8\xD1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(2), tail: None }
+            },
+
+            (M::Fcom, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDC" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Fcomp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD8\xD9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(3), tail: None }
+            },
+
+            (M::Fcomp, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDC" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Fcompp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDE\xD9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(3), tail: None }
+            },
+
+            (M::Fcos, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xFF" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Fdecstp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xF6" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Fdisi, Os::Z) => {
+                Enc { pref: b"\x9B" , op: b"\xDB\xE1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fdiv, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xD8" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Fdiv, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDC" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Fdivp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDE\xF9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Fdivr, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xD8" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Fdivr, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDC" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Fdivrp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDE\xF1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Feni, Os::Z) => {
+                Enc { pref: b"\x9B" , op: b"\xDB\xE0" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fiadd, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDA" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Fiadd, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Ficom, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDA" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Ficom, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Ficomp, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDA" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Ficomp, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Fidiv, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDA" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Fidiv, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Fidivr, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDA" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Fidivr, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Fild, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDB" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Fild, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Fild, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"" , op: b"\xDF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Fimul, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDA" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Fimul, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Fincstp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xF7" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Finit, Os::Z) => {
+                Enc { pref: b"\x9B" , op: b"\xDB\xE3" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fist, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDB" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Fist, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Fistp, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDB" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Fistp, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Fistp, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"" , op: b"\xDF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Fisttp, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDB" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Fisttp, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"" , op: b"\xDD" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Fisttp, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Fisub, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDA" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Fisub, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Fisubr, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDA" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Fisubr, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Fld, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\xDB" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Fld, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDD" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Fld1, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xE8" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Fldcw, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xD9" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Fldenv, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\xD9" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Fldl2e, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xEA" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Fldl2t, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xE9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Fldlg2, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xEC" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Fldln2, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xED" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Fldpi, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xEB" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Fldz, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xEE" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Fmul, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xD8" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Fmul, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDC" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Fmulp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDE\xC9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(1), tail: None }
+            },
+
+            (M::Fnclex, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDB\xE2" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fndisi, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDB\xE1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fneni, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDB\xE0" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fninit, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDB\xE3" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fnop, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xD0" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(2), tail: None }
+            },
+
+            (M::Fnsave, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\xDD" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Fnsetpm, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDB\xE4" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fnstcw, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xD9" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Fnstenv, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\xD9" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Fnstsw, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDD" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Fnstsw, Os::A(_0@O::Reg(R(RT::W, 0)))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xDF\xE0" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fpatan, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xF3" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Fprem, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xF8" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Fprem1, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xF5" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Fptan, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xF2" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Frndint, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xFC" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Frstor, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\xDD" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Fsave, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"\x9B" , op: b"\xDD" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Fscale, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xFD" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Fsetpm, Os::Z) => {
+                Enc { pref: b"\x9B" , op: b"\xDB\xE4" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fsin, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xFE" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Fsincos, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xFB" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Fsqrt, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xFA" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Fst, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xD9" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Fst, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDD" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Fstcw, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"\x9B" , op: b"\xD9" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Fstenv, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"\x9B" , op: b"\xD9" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Fstp, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xD9" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Fstp, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\xDB" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Fstp, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDD" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Fstsw, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"\x9B" , op: b"\xDD" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Fstsw, Os::A(_0@O::Reg(R(RT::W, 0)))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"\x9B" , op: b"\xDF\xE0" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fsub, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xD8" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Fsub, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDC" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Fsubp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDE\xE9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Fsubr, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xD8" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Fsubr, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\xDC" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Fsubrp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDE\xE1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Ftst, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xE4" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fucom, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDD\xE1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fucomp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDD\xE9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Fucompp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xDA\xE9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Fwait, Os::Z) => {
+                Enc { pref: b"" , op: b"\x9B" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Fxam, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xE5" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(4), tail: None }
+            },
+
+            (M::Fxch, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xC9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(1), tail: None }
+            },
+
+            (M::Fxrstor, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\x0F\xAE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Fxsave, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\x0F\xAE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Fxtract, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xF4" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Fyl2x, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xF1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Fyl2xp1, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD9\xF9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Getsec, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x37" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x19" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x19" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1A" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1A" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1B" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1B" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1C" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1C" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1D" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1D" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1E" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1E" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::HintNop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Hlt, Os::Z) => {
+                Enc { pref: b"" , op: b"\xF4" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Icebp, Os::Z) => {
+                Enc { pref: b"" , op: b"\xF1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Idiv, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Idiv, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Idiv, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Idiv, Os::A(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Imul, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xAF" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Imul, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xAF" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Imul, Os::C(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_1@O::Imm(_2))) if opguard_szop(szop, 14, &[_0,_1], &[14,6]) => {
+                Enc { pref: b"" , op: b"\x69" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: Some(_2) }
+            },
+
+            (M::Imul, Os::C(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_1@O::Imm(_2))) if opguard_szop(szop, 14, &[_0,_1], &[14,6]) => {
+                Enc { pref: b"" , op: b"\x69" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: Some(_2) }
+            },
+
+            (M::Imul, Os::C(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_1@O::Imm(_2))) if opguard_szop(szop, 14, &[_0,_1], &[14,1]) => {
+                Enc { pref: b"" , op: b"\x6B" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: Some(_2) }
+            },
+
+            (M::Imul, Os::C(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_1@O::Imm(_2))) if opguard_szop(szop, 14, &[_0,_1], &[14,1]) => {
+                Enc { pref: b"" , op: b"\x6B" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: Some(_2) }
+            },
+
+            (M::Imul, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Imul, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Imul, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Imul, Os::A(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::In, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xE4" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
+            },
+
+            (M::In, Os::B(szop@O::Reg(R(RT::W | RT::D, 0)),_0@O::Imm(_1))) if opguard_szop(szop, 6, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xE5" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::In, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Reg(R(RT::W, 2)))) if opguard(&[_0,_1], &[1,2]) => {
+                Enc { pref: b"" , op: b"\xEC" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::In, Os::B(szop@O::Reg(R(RT::W | RT::D, 0)),_0@O::Reg(R(RT::W, 2)))) if opguard_szop(szop, 6, &[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xED" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Inc, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x40" , opi: OpI::new(szop, &[]), reg: Some(szop.reg()), rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Inc, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xFE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Inc, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xFE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Inc, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Inc, Os::A(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Insb, Os::Z) => {
+                Enc { pref: b"" , op: b"\x6C" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Insd, Os::Z) => {
+                Enc { pref: b"" , op: b"\x6D" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Insw, Os::Z) => {
+                Enc { pref: b"" , op: b"\x6D" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Int, Os::A(_0@O::Imm(_1))) if opguard(&[_0], &[255])&&_1.is_le_int(3) => {
+                Enc { pref: b"" , op: b"\xCC" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Int, Os::A(_0@O::Imm(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xCD" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Int1, Os::Z) => {
+                Enc { pref: b"" , op: b"\xF1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Invd, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x08" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Invept, Os::B(_0@O::Reg(R(RT::D, 0..16)),_1@O::Mem(MSz::Word, _))) if opguard(&[_0,_1], &[4,16]) => {
+                Enc { pref: b"\x66" , op: b"\x0F\x38\x80" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Invept, Os::B(_0@O::Reg(R(RT::Q, 0..16)),_1@O::Mem(MSz::Word, _))) if opguard(&[_0,_1], &[8,16]) => {
+                Enc { pref: b"\x66" , op: b"\x0F\x38\x80" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Invlpg, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\x0F\x01" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Invvpid, Os::B(_0@O::Reg(R(RT::D, 0..16)),_1@O::Mem(MSz::Word, _))) if opguard(&[_0,_1], &[4,16]) => {
+                Enc { pref: b"\x66" , op: b"\x0F\x38\x81" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Invvpid, Os::B(_0@O::Reg(R(RT::Q, 0..16)),_1@O::Mem(MSz::Word, _))) if opguard(&[_0,_1], &[8,16]) => {
+                Enc { pref: b"\x66" , op: b"\x0F\x38\x81" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Iret, Os::Z) => {
+                Enc { pref: b"" , op: b"\xCF" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Iretd, Os::Z) => {
+                Enc { pref: b"" , op: b"\xCF" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Iretq, Os::Z) => {
+                Enc { pref: b"" , op: b"\xCF" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Ja, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x87" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Ja, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x77" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jae, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x83" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jae, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x73" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jb, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x82" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jb, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x72" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jbe, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x86" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jbe, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x76" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jc, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x82" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jc, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x72" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jcxz, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xE3" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Je, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x84" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Je, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x74" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jecxz, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xE3" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jg, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8F" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jg, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7F" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jge, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8D" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jge, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7D" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jl, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8C" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jl, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7C" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jle, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8E" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jle, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7E" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jmp, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xE9" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jmp, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xEB" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jmp, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Jmp, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Jmp, Os::A(_0@O::Reg(R(RT::Q, 0..16)))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Jmp, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Jmpe, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Jmpe, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\xB8" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Jmpf, Os::A(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Jna, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x86" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jna, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x76" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jnae, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x82" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jnae, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x72" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jnb, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x83" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jnb, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x73" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jnbe, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x87" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jnbe, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x77" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jnc, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x83" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jnc, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x73" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jne, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x85" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jne, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x75" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jng, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8E" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jng, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7E" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jnge, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8C" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jnge, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7C" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jnl, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8D" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jnl, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7D" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jnle, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8F" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jnle, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7F" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jno, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x81" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jno, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x71" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jnp, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8B" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jnp, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7B" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jns, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x89" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jns, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x79" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jnz, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x85" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jnz, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x75" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jo, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x80" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jo, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x70" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jp, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8A" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jp, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7A" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jpe, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8A" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jpe, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7A" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jpo, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x8B" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jpo, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x7B" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jrcxz, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xE3" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Js, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x88" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Js, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x78" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Jz, Os::A(szop@O::Rel(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x84" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Jz, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x74" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Lahf, Os::Z) => {
+                Enc { pref: b"" , op: b"\x9F" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Lar, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word, _))) if opguard_szop(szop, 14, &[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x02" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Lar, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x0F\x02" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Ldmxcsr, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\x0F\xAE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Lea, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::None, _))) if opguard_szop(szop, 14, &[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\x8D" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Leave, Os::Z) => {
+                Enc { pref: b"" , op: b"\xC9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Lfence, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\xAE" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(5), tail: None }
+            },
+
+            (M::Lfs, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xB4" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Lgdt, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\x0F\x01" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Lgs, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xB5" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Lidt, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\x0F\x01" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Lldt, Os::A(_0@O::Reg(R(RT::W, 0..16)))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Lldt, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Lmsw, Os::A(_0@O::Reg(R(RT::W, 0..16)))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x01" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Lmsw, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x01" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Loadall, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x05" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Loadall, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x07" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Lodsb, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAC" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Lodsd, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAD" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Lodsq, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAD" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Lodsw, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAD" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Loop, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xE2" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Loope, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xE1" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Loopne, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xE0" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Loopnz, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xE0" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Loopz, Os::A(_0@O::Rel(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xE1" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Lsl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word, _))) if opguard_szop(szop, 14, &[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x03" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Lsl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x0F\x03" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Lss, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xB2" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Ltr, Os::A(_0@O::Reg(R(RT::W, 0..16)))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Ltr, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Lzcnt, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"\xF3" , op: b"\x0F\xBD" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Lzcnt, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"\xF3" , op: b"\x0F\xBD" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Mfence, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\xAE" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(6), tail: None }
+            },
+
+            (M::Monitor, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x01\xC8" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(1), tail: None }
+            },
+
+            (M::Mov, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x88" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Mov, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x88" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Mov, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x89" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Mov, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x89" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Mov, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x8A" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Mov, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x8A" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Mov, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x8B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Mov, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x8B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Mov, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xB0" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: Erm::None, ext: None, tail: Some(_2) }
+            },
+
+            (M::Mov, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\xB8" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Mov, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC6" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: Some(_2) }
+            },
+
+            (M::Mov, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC6" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: Some(_2) }
+            },
+
+            (M::Mov, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\xC7" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
+            },
+
+            (M::Mov, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\xC7" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
+            },
+
+            (M::Movbe, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x38\xF0" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Movbe, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\x38\xF1" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Movnti, Os::B(_0@O::Mem(MSz::Dword | MSz::Qword, _),_1@O::Reg(R(RT::D | RT::Q, 0..16)))) if opguard(&[_0,_1], &[12,12]) => {
+                Enc { pref: b"" , op: b"\x0F\xC3" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Movsb, Os::Z) => {
+                Enc { pref: b"" , op: b"\xA4" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Movsd, Os::Z) => {
+                Enc { pref: b"" , op: b"\xA5" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Movsq, Os::Z) => {
+                Enc { pref: b"" , op: b"\xA5" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Movsw, Os::Z) => {
+                Enc { pref: b"" , op: b"\xA5" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Movsx, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xBE" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Movsx, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Byte, _))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xBE" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Movsx, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W, 0..16)))) if opguard_szop(szop, 14, &[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\xBF" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Movsx, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word, _))) if opguard_szop(szop, 14, &[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\xBF" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Movsxd, Os::B(_0@O::Reg(R(RT::D | RT::Q, 0..16)),_1@O::Reg(R(RT::D, 0..16)))) if opguard(&[_0,_1], &[12,4]) => {
+                Enc { pref: b"" , op: b"\x63" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Movsxd, Os::B(_0@O::Reg(R(RT::D | RT::Q, 0..16)),_1@O::Mem(MSz::Dword, _))) if opguard(&[_0,_1], &[12,4]) => {
+                Enc { pref: b"" , op: b"\x63" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Movzx, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xB6" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Movzx, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Byte, _))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\xB6" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Movzx, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W, 0..16)))) if opguard_szop(szop, 14, &[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\xB7" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Movzx, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word, _))) if opguard_szop(szop, 14, &[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\xB7" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Mul, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Mul, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Mul, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Mul, Os::A(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Mwait, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x01\xC9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(1), tail: None }
+            },
+
+            (M::Neg, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Neg, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Neg, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Neg, Os::A(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Nop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x0D" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::Nop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x0D" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: None, tail: None }
+            },
+
+            (M::Nop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Nop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x1F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Nop, Os::Z) => {
+                Enc { pref: b"" , op: b"\x90" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Nop, Os::Z) => {
+                Enc { pref: b"\xF3" , op: b"\x90" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Not, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Not, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Not, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Not, Os::A(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Or, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x08" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Or, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x08" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Or, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x09" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Or, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x09" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Or, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x0A" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Or, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x0A" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Or, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Or, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Or, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x0C" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
+            },
+
+            (M::Or, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x0D" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Or, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(1), tail: Some(_2) }
+            },
+
+            (M::Or, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(1), tail: Some(_2) }
+            },
+
+            (M::Or, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: Some(_1) }
+            },
+
+            (M::Or, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: Some(_1) }
+            },
+
+            (M::Or, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: Some(_1) }
+            },
+
+            (M::Or, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: Some(_1) }
+            },
+
+            (M::Out, Os::B(_0@O::Imm(_1),_2@O::Reg(R(RT::B, 0)))) if opguard(&[_0,_2], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xE6" , opi: OpI::unsz(&[_0,_2]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Out, Os::B(_0@O::Imm(_1),szop@O::Reg(R(RT::W | RT::D, 0)))) if opguard_szop(szop, 6, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xE7" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Out, Os::B(_0@O::Reg(R(RT::W, 2)),_1@O::Reg(R(RT::B, 0)))) if opguard(&[_0,_1], &[2,1]) => {
+                Enc { pref: b"" , op: b"\xEE" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Out, Os::B(_0@O::Reg(R(RT::W, 2)),szop@O::Reg(R(RT::W | RT::D, 0)))) if opguard_szop(szop, 6, &[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xEF" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Outsb, Os::Z) => {
+                Enc { pref: b"" , op: b"\x6E" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Outsd, Os::Z) => {
+                Enc { pref: b"" , op: b"\x6F" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Outsw, Os::Z) => {
+                Enc { pref: b"" , op: b"\x6F" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Pause, Os::Z) => {
+                Enc { pref: b"\xF3" , op: b"\x90" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Pop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x58" , opi: OpI::new(szop, &[]), reg: Some(szop.reg()), rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Pop, Os::A(szop@O::Reg(R(RT::W | RT::Q, 0..16)))) if opguard_szop(szop, 10, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x58" , opi: OpI::new(szop, &[]), reg: Some(szop.reg()), rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Pop, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x8F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Pop, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x8F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Pop, Os::A(szop@O::Reg(R(RT::W | RT::Q, 0..16)))) if opguard_szop(szop, 10, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x8F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Pop, Os::A(szop@O::Mem(MSz::Word | MSz::Qword, _))) if opguard_szop(szop, 10, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x8F" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Popcnt, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"\xF3" , op: b"\x0F\xB8" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Popcnt, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"\xF3" , op: b"\x0F\xB8" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Popf, Os::Z) => {
+                Enc { pref: b"" , op: b"\x9D" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Popfd, Os::Z) => {
+                Enc { pref: b"" , op: b"\x9D" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Popfq, Os::Z) => {
+                Enc { pref: b"" , op: b"\x9D" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Prefetchnta, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Prefetcht0, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Prefetcht1, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Prefetcht2, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x18" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Push, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x50" , opi: OpI::new(szop, &[]), reg: Some(szop.reg()), rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Push, Os::A(szop@O::Reg(R(RT::W | RT::Q, 0..16)))) if opguard_szop(szop, 10, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x50" , opi: OpI::new(szop, &[]), reg: Some(szop.reg()), rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Push, Os::A(szop@O::Imm(_0))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x68" , opi: OpI::new(szop, &[]), reg: None, rm: Erm::None, ext: None, tail: Some(_0) }
+            },
+
+            (M::Push, Os::A(_0@O::Imm(_1))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x6A" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Push, Os::A(szop@O::Reg(R(RT::W | RT::D, 0..16)))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Push, Os::A(szop@O::Mem(MSz::Word | MSz::Dword, _))) if opguard_szop(szop, 6, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Push, Os::A(szop@O::Reg(R(RT::W | RT::Q, 0..16)))) if opguard_szop(szop, 10, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Push, Os::A(szop@O::Mem(MSz::Word | MSz::Qword, _))) if opguard_szop(szop, 10, &[], &[]) => {
+                Enc { pref: b"" , op: b"\xFF" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Pushf, Os::Z) => {
+                Enc { pref: b"" , op: b"\x9C" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Pushfd, Os::Z) => {
+                Enc { pref: b"" , op: b"\x9C" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Pushfq, Os::Z) => {
+                Enc { pref: b"" , op: b"\x9C" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Rcl, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(2), tail: Some(_2) }
+            },
+
+            (M::Rcl, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(2), tail: Some(_2) }
+            },
+
+            (M::Rcl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(2), tail: Some(_1) }
+            },
+
+            (M::Rcl, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(2), tail: Some(_1) }
+            },
+
+            (M::Rcl, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(2), tail: Some(_2) }
+            },
+
+            (M::Rcl, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(2), tail: Some(_2) }
+            },
+
+            (M::Rcl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(2), tail: Some(_1) }
+            },
+
+            (M::Rcl, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(2), tail: Some(_1) }
+            },
+
+            (M::Rcl, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Rcl, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Rcl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Rcl, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(2), tail: None }
+            },
+
+            (M::Rcr, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(3), tail: Some(_2) }
+            },
+
+            (M::Rcr, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(3), tail: Some(_2) }
+            },
+
+            (M::Rcr, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(3), tail: Some(_1) }
+            },
+
+            (M::Rcr, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(3), tail: Some(_1) }
+            },
+
+            (M::Rcr, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(3), tail: Some(_2) }
+            },
+
+            (M::Rcr, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(3), tail: Some(_2) }
+            },
+
+            (M::Rcr, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(3), tail: Some(_1) }
+            },
+
+            (M::Rcr, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(3), tail: Some(_1) }
+            },
+
+            (M::Rcr, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Rcr, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Rcr, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Rcr, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(3), tail: None }
+            },
+
+            (M::Rdmsr, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x32" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Rdpmc, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x33" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Rdtsc, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x31" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Rdtscp, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x01\xF9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Retf, Os::A(_0@O::Imm(_1))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xCA" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Retf, Os::Z) => {
+                Enc { pref: b"" , op: b"\xCB" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Retn, Os::A(_0@O::Imm(_1))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\xC2" , opi: OpI::unsz(&[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Retn, Os::Z) => {
+                Enc { pref: b"" , op: b"\xC3" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Rol, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: Some(_2) }
+            },
+
+            (M::Rol, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: Some(_2) }
+            },
+
+            (M::Rol, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
+            },
+
+            (M::Rol, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
+            },
+
+            (M::Rol, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: Some(_2) }
+            },
+
+            (M::Rol, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: Some(_2) }
+            },
+
+            (M::Rol, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
+            },
+
+            (M::Rol, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
+            },
+
+            (M::Rol, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Rol, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Rol, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Rol, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Ror, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(1), tail: Some(_2) }
+            },
+
+            (M::Ror, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(1), tail: Some(_2) }
+            },
+
+            (M::Ror, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: Some(_1) }
+            },
+
+            (M::Ror, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: Some(_1) }
+            },
+
+            (M::Ror, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(1), tail: Some(_2) }
+            },
+
+            (M::Ror, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(1), tail: Some(_2) }
+            },
+
+            (M::Ror, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: Some(_1) }
+            },
+
+            (M::Ror, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: Some(_1) }
+            },
+
+            (M::Ror, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Ror, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Ror, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Ror, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Rsm, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\xAA" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Sahf, Os::Z) => {
+                Enc { pref: b"" , op: b"\x9E" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Sal, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: Some(_2) }
+            },
+
+            (M::Sal, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: Some(_2) }
+            },
+
+            (M::Sal, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: Some(_2) }
+            },
+
+            (M::Sal, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: Some(_2) }
+            },
+
+            (M::Sal, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
+            },
+
+            (M::Sal, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
+            },
+
+            (M::Sal, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Sal, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Sal, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: Some(_2) }
+            },
+
+            (M::Sal, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: Some(_2) }
+            },
+
+            (M::Sal, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: Some(_2) }
+            },
+
+            (M::Sal, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: Some(_2) }
+            },
+
+            (M::Sal, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
+            },
+
+            (M::Sal, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
+            },
+
+            (M::Sal, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Sal, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Sal, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Sal, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Sal, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Sal, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Sal, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Sal, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Sal, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Sal, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Sar, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(7), tail: Some(_2) }
+            },
+
+            (M::Sar, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(7), tail: Some(_2) }
+            },
+
+            (M::Sar, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: Some(_1) }
+            },
+
+            (M::Sar, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: Some(_1) }
+            },
+
+            (M::Sar, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(7), tail: Some(_2) }
+            },
+
+            (M::Sar, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(7), tail: Some(_2) }
+            },
+
+            (M::Sar, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: Some(_1) }
+            },
+
+            (M::Sar, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: Some(_1) }
+            },
+
+            (M::Sar, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Sar, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Sar, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Sar, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Sbb, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x18" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Sbb, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x18" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Sbb, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x19" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Sbb, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x19" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Sbb, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x1A" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Sbb, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x1A" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Sbb, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x1B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Sbb, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x1B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Sbb, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x1C" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
+            },
+
+            (M::Sbb, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x1D" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Sbb, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(3), tail: Some(_2) }
+            },
+
+            (M::Sbb, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(3), tail: Some(_2) }
+            },
+
+            (M::Sbb, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(3), tail: Some(_1) }
+            },
+
+            (M::Sbb, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(3), tail: Some(_1) }
+            },
+
+            (M::Sbb, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(3), tail: Some(_1) }
+            },
+
+            (M::Sbb, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(3), tail: Some(_1) }
+            },
+
+            (M::Scasb, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAE" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Scasd, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAF" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Scasq, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAF" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Scasw, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAF" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Seta, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x97" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Seta, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x97" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setae, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x93" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setae, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x93" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setb, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x92" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setb, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x92" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setbe, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x96" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setbe, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x96" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setc, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x92" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setc, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x92" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Sete, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x94" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Sete, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x94" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setg, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9F" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setg, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9F" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setge, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9D" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setge, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9D" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setl, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9C" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setl, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9C" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setle, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9E" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setle, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9E" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setna, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x96" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setna, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x96" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnae, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x92" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnae, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x92" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnb, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x93" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnb, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x93" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnbe, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x97" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnbe, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x97" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnc, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x93" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnc, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x93" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setne, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x95" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setne, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x95" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setng, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9E" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setng, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9E" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnge, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9C" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnge, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9C" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnl, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9D" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnl, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9D" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnle, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9F" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnle, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9F" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setno, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x91" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setno, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x91" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnp, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9B" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnp, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9B" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setns, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x99" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setns, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x99" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnz, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x95" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setnz, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x95" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Seto, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x90" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Seto, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x90" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setp, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9A" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setp, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9A" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setpe, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9A" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setpe, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9A" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setpo, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9B" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setpo, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x9B" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Sets, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x98" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Sets, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x98" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setz, Os::A(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x94" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Setz, Os::A(_0@O::Mem(MSz::Byte, _))) if opguard(&[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x0F\x94" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Sfence, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\xAE" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Sgdt, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\x0F\x01" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Shl, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: Some(_2) }
+            },
+
+            (M::Shl, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: Some(_2) }
+            },
+
+            (M::Shl, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: Some(_2) }
+            },
+
+            (M::Shl, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: Some(_2) }
+            },
+
+            (M::Shl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
+            },
+
+            (M::Shl, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
+            },
+
+            (M::Shl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Shl, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Shl, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: Some(_2) }
+            },
+
+            (M::Shl, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: Some(_2) }
+            },
+
+            (M::Shl, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: Some(_2) }
+            },
+
+            (M::Shl, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: Some(_2) }
+            },
+
+            (M::Shl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
+            },
+
+            (M::Shl, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: Some(_1) }
+            },
+
+            (M::Shl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Shl, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Shl, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Shl, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Shl, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Shl, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Shl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Shl, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Shl, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Shl, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Shld, Os::C(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_1@O::Imm(_2))) if opguard_szop(szop, 14, &[_0,_1], &[14,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xA4" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: Some(_2) }
+            },
+
+            (M::Shld, Os::C(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_1@O::Imm(_2))) if opguard_szop(szop, 14, &[_0,_1], &[14,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xA4" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: Some(_2) }
+            },
+
+            (M::Shld, Os::C(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_1@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0,_1], &[14,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xA5" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Shld, Os::C(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_1@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0,_1], &[14,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xA5" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Shr, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(5), tail: Some(_2) }
+            },
+
+            (M::Shr, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xC0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(5), tail: Some(_2) }
+            },
+
+            (M::Shr, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: Some(_1) }
+            },
+
+            (M::Shr, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xC1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: Some(_1) }
+            },
+
+            (M::Shr, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(5), tail: Some(_2) }
+            },
+
+            (M::Shr, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,255])&&_2.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD0" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(5), tail: Some(_2) }
+            },
+
+            (M::Shr, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: Some(_1) }
+            },
+
+            (M::Shr, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[255])&&_1.is_le_int(1) => {
+                Enc { pref: b"" , op: b"\xD1" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: Some(_1) }
+            },
+
+            (M::Shr, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Shr, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 1)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xD2" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Shr, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Shr, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\xD3" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Shrd, Os::C(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_1@O::Imm(_2))) if opguard_szop(szop, 14, &[_0,_1], &[14,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xAC" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: Some(_2) }
+            },
+
+            (M::Shrd, Os::C(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_1@O::Imm(_2))) if opguard_szop(szop, 14, &[_0,_1], &[14,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xAC" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: Some(_2) }
+            },
+
+            (M::Shrd, Os::C(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_1@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0,_1], &[14,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xAD" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Shrd, Os::C(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_1@O::Reg(R(RT::B, 1)))) if opguard_szop(szop, 14, &[_0,_1], &[14,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xAD" , opi: OpI::new(szop, &[_0,_1]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Sidt, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\x0F\x01" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
+            },
+
+            (M::Sldt, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Sldt, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(0), tail: None }
+            },
+
+            (M::Smsw, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x01" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Smsw, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x01" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Stc, Os::Z) => {
+                Enc { pref: b"" , op: b"\xF9" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
             (M::Std, Os::Z) => {
-                Enc { pref: b"" , op: b"\xFD" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::None, ext: None, tail: None }
+                Enc { pref: b"" , op: b"\xFD" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
-            (M::Inc, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\xFE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(0), tail: None }
+            (M::Sti, Os::Z) => {
+                Enc { pref: b"" , op: b"\xFB" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
-            (M::Inc, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\xFE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(0), tail: None }
+            (M::Stmxcsr, Os::A(_0@O::Mem(MSz::Dword, _))) if opguard(&[_0], &[4]) => {
+                Enc { pref: b"" , op: b"\x0F\xAE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(3), tail: None }
             },
 
-            (M::Dec, Os::A(O::Reg(R::Gpr(_0@(Sz::Byte), _1)))) => {
-                Enc { pref: b"" , op: b"\xFE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(1), tail: None }
+            (M::Stosb, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAA" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
-            (M::Dec, Os::A(O::Mem(_0@(Sz::Byte), _1))) => {
-                Enc { pref: b"" , op: b"\xFE" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(1), tail: None }
+            (M::Stosd, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAB" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
-            (M::Inc, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(0), tail: None }
+            (M::Stosq, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAB" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
-            (M::Inc, Os::A(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(0), tail: None }
+            (M::Stosw, Os::Z) => {
+                Enc { pref: b"" , op: b"\xAB" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
             },
 
-            (M::Dec, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long | Sz::Quad), _0)))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(1), tail: None }
+            (M::Str, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(1), tail: None }
             },
 
-            (M::Dec, Os::A(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(1), tail: None }
+            (M::Str, Os::A(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[], &[]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::new(szop, &[]), reg: None, rm: szop.rm(), ext: Some(1), tail: None }
             },
 
-            (M::Push, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _1)))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(6), tail: None }
+            (M::Sub, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x28" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Push, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
+            (M::Sub, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x28" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Push, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Quad), _1)))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(6), tail: None }
+            (M::Sub, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x29" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Push, Os::A(O::Mem(sz@(Sz::Word | Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(6), tail: None }
+            (M::Sub, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x29" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Call, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _1)))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(2), tail: None }
+            (M::Sub, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x2A" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
             },
 
-            (M::Call, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _1))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(2), tail: None }
+            (M::Sub, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x2A" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
             },
 
-            (M::Call, Os::A(O::Reg(R::Gpr(_1@(Sz::Quad), _2)))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_2)), ext: Some(2), tail: None }
+            (M::Sub, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x2B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Call, Os::A(O::Mem(_1@(Sz::Quad), _2))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_2.encoding()), ext: Some(2), tail: None }
+            (M::Sub, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x2B" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
             },
 
-            (M::Jmp, Os::A(O::Reg(R::Gpr(sz@(Sz::Word | Sz::Long), _0)))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_0)), ext: Some(4), tail: None }
+            (M::Sub, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x2C" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
             },
 
-            (M::Jmp, Os::A(O::Mem(sz@(Sz::Word | Sz::Long), _0))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(4), tail: None }
+            (M::Sub, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x2D" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
             },
 
-            (M::Jmp, Os::A(O::Reg(R::Gpr(_0@(Sz::Quad), _1)))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Gpr(Gpr(_1)), ext: Some(4), tail: None }
+            (M::Sub, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(5), tail: Some(_2) }
             },
 
-            (M::Jmp, Os::A(O::Mem(_0@(Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: Sz::None, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(4), tail: None }
+            (M::Sub, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(5), tail: Some(_2) }
             },
 
-            (M::Callf, Os::A(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _1))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_1.encoding()), ext: Some(3), tail: None }
+            (M::Sub, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: Some(_1) }
             },
 
-            (M::Jmpf, Os::A(O::Mem(sz@(Sz::Word | Sz::Long | Sz::Quad), _0))) => {
-                Enc { pref: b"" , op: b"\xFF" , sz: sz, rex_w: false, reg: None, rm: Erm::Mem(_0.encoding()), ext: Some(5), tail: None }
+            (M::Sub, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: Some(_1) }
+            },
+
+            (M::Sub, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: Some(_1) }
+            },
+
+            (M::Sub, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(5), tail: Some(_1) }
+            },
+
+            (M::Swapgs, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x01\xF8" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(7), tail: None }
+            },
+
+            (M::Syscall, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x05" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Sysenter, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x34" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Sysexit, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x35" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Sysret, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x07" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Test, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x84" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Test, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x84" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Test, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x85" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Test, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x85" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Test, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xA8" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
+            },
+
+            (M::Test, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\xA9" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Test, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: Some(_2) }
+            },
+
+            (M::Test, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(0), tail: Some(_2) }
+            },
+
+            (M::Test, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(1), tail: Some(_2) }
+            },
+
+            (M::Test, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\xF6" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(1), tail: Some(_2) }
+            },
+
+            (M::Test, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
+            },
+
+            (M::Test, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(0), tail: Some(_1) }
+            },
+
+            (M::Test, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: Some(_1) }
+            },
+
+            (M::Test, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\xF7" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(1), tail: Some(_1) }
+            },
+
+            (M::Tzcnt, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"\xF3" , op: b"\x0F\xBC" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Tzcnt, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"\xF3" , op: b"\x0F\xBC" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Verr, Os::A(_0@O::Reg(R(RT::W, 0..16)))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Verr, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Verw, Os::A(_0@O::Reg(R(RT::W, 0..16)))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Verw, Os::A(_0@O::Mem(MSz::Word, _))) if opguard(&[_0], &[2]) => {
+                Enc { pref: b"" , op: b"\x0F\x00" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Vmcall, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x01\xC1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(0), tail: None }
+            },
+
+            (M::Vmclear, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"\x66" , op: b"\x0F\xC7" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Vmlaunch, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x01\xC2" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(0), tail: None }
+            },
+
+            (M::Vmptrld, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"" , op: b"\x0F\xC7" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Vmptrst, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"" , op: b"\x0F\xC7" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(7), tail: None }
+            },
+
+            (M::Vmread, Os::B(_0@O::Reg(R(RT::D, 0..16)),_1@O::Reg(R(RT::D, 0..16)))) if opguard(&[_0,_1], &[4,4]) => {
+                Enc { pref: b"" , op: b"\x0F\x78" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Vmread, Os::B(_0@O::Mem(MSz::Dword, _),_1@O::Reg(R(RT::D, 0..16)))) if opguard(&[_0,_1], &[4,4]) => {
+                Enc { pref: b"" , op: b"\x0F\x78" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Vmread, Os::B(_0@O::Reg(R(RT::Q, 0..16)),_1@O::Reg(R(RT::Q, 0..16)))) if opguard(&[_0,_1], &[8,8]) => {
+                Enc { pref: b"" , op: b"\x0F\x78" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Vmread, Os::B(_0@O::Mem(MSz::Qword, _),_1@O::Reg(R(RT::Q, 0..16)))) if opguard(&[_0,_1], &[8,8]) => {
+                Enc { pref: b"" , op: b"\x0F\x78" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Vmresume, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x01\xC3" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(0), tail: None }
+            },
+
+            (M::Vmwrite, Os::B(_0@O::Reg(R(RT::D, 0..16)),_1@O::Reg(R(RT::D, 0..16)))) if opguard(&[_0,_1], &[4,4]) => {
+                Enc { pref: b"" , op: b"\x0F\x79" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Vmwrite, Os::B(_0@O::Reg(R(RT::D, 0..16)),_1@O::Mem(MSz::Dword, _))) if opguard(&[_0,_1], &[4,4]) => {
+                Enc { pref: b"" , op: b"\x0F\x79" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Vmwrite, Os::B(_0@O::Reg(R(RT::Q, 0..16)),_1@O::Reg(R(RT::Q, 0..16)))) if opguard(&[_0,_1], &[8,8]) => {
+                Enc { pref: b"" , op: b"\x0F\x79" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Vmwrite, Os::B(_0@O::Reg(R(RT::Q, 0..16)),_1@O::Mem(MSz::Qword, _))) if opguard(&[_0,_1], &[8,8]) => {
+                Enc { pref: b"" , op: b"\x0F\x79" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Vmxoff, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x01\xC4" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(0), tail: None }
+            },
+
+            (M::Vmxon, Os::A(_0@O::Mem(MSz::Qword, _))) if opguard(&[_0], &[8]) => {
+                Enc { pref: b"\xF3" , op: b"\x0F\xC7" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(6), tail: None }
+            },
+
+            (M::Wait, Os::Z) => {
+                Enc { pref: b"" , op: b"\x9B" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Wbinvd, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x09" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Wrmsr, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x30" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Xadd, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xC0" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xadd, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x0F\xC0" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xadd, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xC1" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xadd, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x0F\xC1" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xchg, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x86" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Xchg, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x86" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Xchg, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x87" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xchg, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x87" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xchg, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x90" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Xgetbv, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x01\xD0" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(2), tail: None }
+            },
+
+            (M::Xlatb, Os::Z) => {
+                Enc { pref: b"" , op: b"\xD7" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: None, tail: None }
+            },
+
+            (M::Xor, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x30" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xor, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x30" , opi: OpI::unsz(&[_0,_1]), reg: Some(_1.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xor, Os::B(_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x31" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xor, Os::B(_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x31" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xor, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x32" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Xor, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Mem(MSz::Byte, _))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x32" , opi: OpI::unsz(&[_0,_1]), reg: Some(_0.reg()), rm: _1.rm(), ext: None, tail: None }
+            },
+
+            (M::Xor, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x33" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xor, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _))) if opguard_szop(szop, 14, &[_0], &[14]) => {
+                Enc { pref: b"" , op: b"\x33" , opi: OpI::new(szop, &[_0]), reg: Some(szop.reg()), rm: _0.rm(), ext: None, tail: None }
+            },
+
+            (M::Xor, Os::B(_0@O::Reg(R(RT::B, 0)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x34" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: Erm::None, ext: None, tail: Some(_2) }
+            },
+
+            (M::Xor, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x35" , opi: OpI::new(szop, &[_0]), reg: None, rm: Erm::None, ext: None, tail: Some(_1) }
+            },
+
+            (M::Xor, Os::B(_0@O::Reg(R(RT::B, 0..16)|R(RT::H, 4..8)),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: Some(_2) }
+            },
+
+            (M::Xor, Os::B(_0@O::Mem(MSz::Byte, _),_1@O::Imm(_2))) if opguard(&[_0,_1], &[1,1]) => {
+                Enc { pref: b"" , op: b"\x80" , opi: OpI::unsz(&[_0,_1]), reg: None, rm: _0.rm(), ext: Some(6), tail: Some(_2) }
+            },
+
+            (M::Xor, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Xor, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[6]) => {
+                Enc { pref: b"" , op: b"\x81" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Xor, Os::B(szop@O::Reg(R(RT::W | RT::D | RT::Q, 0..16)),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Xor, Os::B(szop@O::Mem(MSz::Word | MSz::Dword | MSz::Qword, _),_0@O::Imm(_1))) if opguard_szop(szop, 14, &[_0], &[1]) => {
+                Enc { pref: b"" , op: b"\x83" , opi: OpI::new(szop, &[_0]), reg: None, rm: szop.rm(), ext: Some(6), tail: Some(_1) }
+            },
+
+            (M::Xrstor, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\x0F\xAE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(5), tail: None }
+            },
+
+            (M::Xsave, Os::A(_0@O::Mem(MSz::None, _))) if opguard(&[_0], &[255]) => {
+                Enc { pref: b"" , op: b"\x0F\xAE" , opi: OpI::unsz(&[_0]), reg: None, rm: _0.rm(), ext: Some(4), tail: None }
+            },
+
+            (M::Xsetbv, Os::Z) => {
+                Enc { pref: b"" , op: b"\x0F\x01\xD1" , opi: OpI::unsz(&[]), reg: None, rm: Erm::None, ext: Some(2), tail: None }
             },
 
             (_, _) => panic!("unsupported instruction type"),

@@ -204,41 +204,56 @@ def gen_prefixes(prefixes: dict[str, PrefixGroup]) -> str:
 def bytes_expr(hexes: list[str]) -> str:
     return f"""b"{"".join(f'\\x{byte}' for byte in hexes)}" """
 
+def operand_regtype_pattern(o: XmlOperand, regnum: str) -> str:
+    rn = "0..16" if regnum == "_" else regnum
+    match o.t:
+        case "b" | "bs" | "bss": return f"R(RT::B, {rn})|R(RT::H, {"4..8" if regnum == "_" else regnum})"
+        case "w" | "wi" | "wo": return f"R(RT::W, {rn})"
+        case "d" | "di" | "ds" | "da" | "do" | "sr": return f"R(RT::D, {rn})"
+        case "q" | "qi" | "qp" | "psq" | "dr" | "pi" | "qa" | "qs": return f"R(RT::Q, {rn})"
+        case "v" | "vs" | "vds": return f"R(RT::W | RT::D, {rn})"
+        case "vqp" | "ptp": return f"R(RT::W | RT::D | RT::Q, {rn})"
+        case "dqa" | "dqp": return f"R(RT::D | RT::Q, {rn})"
+        case "vq": return f"R(RT::W | RT::Q, {rn})"
+        case "ps" | "pd" | "dq": return f"R(RT::W, {rn})"
+        case _: assert False, f"{o.t} size code not handled"
+
+def operand_memsize_pattern(o: XmlOperand) -> str:
+    match o.t:
+        case "b" | "bs" | "bss": return "MSz::Byte"
+        case "w" | "wi" | "wo": return "MSz::Word"
+        case "d" | "di" | "ds" | "da" | "do" | "sr": return "MSz::Dword"
+        case "q" | "qi" | "qp" | "psq" | "dr" | "pi" | "qa" | "qs": return "MSz::Qword"
+        case "v" | "vs" | "vds": return "MSz::Word | MSz::Dword"
+        case "vqp" | "ptp": return "MSz::Word | MSz::Dword | MSz::Qword"
+        case "dqa" | "dqp": return "MSz::Dword | MSz::Qword"
+        case "vq": return "MSz::Word | MSz::Qword"
+        case "ps" | "pd" | "dq": return "MSz::Word"
+        # Weird cases that don't need syntactic or encoding annotation
+        case None | "stx" | "e" | "er" | "bcd" | "st" | "s": return "MSz::None"
+        case "sd" | "ss" | "ws" | "va" | "wa" : return "MSz::None"
+        case _: assert False, f"{o.t} size code not handled"
+
 def operand_implies_operand_size(o: XmlOperand) -> bool:
     return o.t in ["ptp", "p", "v", "vds", "vq", "vqp", "vs"]
 
-def operand_sz_pattern(o: XmlOperand) -> str:
-    match o.t:
-        case "b" | "bs" | "bss": return "Sz::Byte"
-        case "w" | "wi" | "wo": return "Sz::Word"
-        case "d" | "di" | "ds" | "da" | "do" | "sr": return "Sz::Long"
-        case "q" | "qi" | "qp" | "psq" | "dr" | "pi" | "qa" | "qs": return "Sz::Quad"
-        case "v" | "vs" | "vds": return "Sz::Word | Sz::Long"
-        case "vqp" | "ptp": return "Sz::Word | Sz::Long | Sz::Quad"
-        case "dqa" | "dqp": return "Sz::Long | Sz::Quad"
-        case "vq": return "Sz::Word | Sz::Quad"
-        case "ps" | "pd" | "dq": return "Sz::Octw"
-        # Weird cases that don't need syntactic or encoding annotation
-        case None | "stx" | "e" | "er" | "bcd" | "st" | "s": return "Sz::None"
-        case "sd" | "ss" | "ws" | "va" | "wa" : return "Sz::None"
-        case _: assert False, f"{o.t} size code not handled"
+def is_dynamic_operand(o: XmlOperand) -> str:
+    o.t in ["v", "vs", "vds", "vqp", "vq", "ptp", "dqa", "dqp" ]
 
 @dataclass
 class EncoderArmContext:
     form: Form
 
-    # The authoritative instruction operand-size.
-    insn_size: str | None = None
-    # expressions for each operand's size
-    size_exprs: [(str, int)] = field(default_factory=list)
-    size_authority: str | None = None
-
     rex_w: bool = False
-    reg_expr: str | None = None
+    reg_op: str | None = None
+    rm_op: str | None = None
     tail_vars: [str] = field(default_factory=list)
-    rm_variant: str | None = None
     guards: list[str] = field(default_factory=list)
     operand_patterns: list[str] = field(default_factory=list)
+    operand_variables: list[(int, str)] = field(default_factory=list)
+    # Index of the operand that determines the operand-size of the instruction.
+    operand_determines_size: int | None = None
+    operand_setermines_size_binding: str | None = None
     variable_count: int = 0
 
     def new_var(self) -> str:
@@ -256,26 +271,28 @@ class EncoderArmContext:
             return None
 
         names = ["AX", "CX", "DX", "BX", "SP", "BP", "SI", "DI"] + [str(i) for i in range(8, 16)]
-        bytenames = ["AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH"]
+        bytenames = ["AL", "CL", "DL", "BL", "SPL", "BPL", "SIL", "DIL"]
+        highbytes = [None] * 4 + ["AH", "CH", "DH", "BH"]
         try:
-            return ("Sz::Byte", bytenames.index(reg))
+            return ("RT::B", bytenames.index(reg))
         except:
             pass
         name_match = [i for i, n in enumerate(names) if reg.endswith(n)]
         if name_match:
             match reg[0]:
-                case "E": pat = "Sz::Long"
-                case "e": pat = "Sz::Word | Sz::Long"
-                case "R": pat = "Sz::Quad"
-                case "r": pat = "Sz::Word | Sz::Long | Sz::Quad"
-                case _ if reg == names[name_match[0]]: pat = "Sz::Word"
+                case "E": pat = "RT::D"
+                case "e": pat = "RT::W | RT::D"
+                case "R": pat = "RT::Q"
+                case "r": pat = "RT::W | RT::D | RT::Q"
+                case _ if reg == names[name_match[0]]: pat = "RT::W"
             return (pat, name_match[0])
 
-    def determine_static_insn_size(self):
-        if not self.form.operands:
-            return self.set_insn_size("Sz::None")
 
-        # First, only select operands that can imply an operand size
+    def determine_operand_size(self):
+        if not self.form.operands:
+            self.operand_size_source = None
+
+        # First, only select operands that can imply instruction operand size
         opsize_operands = [(i, o) for i, o in enumerate(self.form.operands) if operand_implies_operand_size(o)]
         # We want to first select the register operand, if there is one (and first the one that
         # goes into the reg field) and only then go for memory, immediates etc.
@@ -283,7 +300,6 @@ class EncoderArmContext:
             taken = [x for x in seq if pred(*x)]
             seq[:] = [x for x in seq if not pred(*x)]
             return taken
-
         # don't consider operands that can't be specified in the syntax. This only concerns enter,
         # leave, int (3/Ib) and icebp, none of which need any size specific handling anyway.
         take(opsize_operands, lambda i, o: not o.displayed)
@@ -298,20 +314,16 @@ class EncoderArmContext:
             opsize_operands
 
         if candidates:
-            self.size_authority = candidates[0][0]
+            self.operand_determines_size = candidates[0][0]
             return
 
         # consider cases like crc32, movsxd that only have one variable-sized operand
         # (generally Gdqp.) crc32 specifically is a good example of why dqp-likes must be explored
         # separately.
-        non_static_ops = [i for i, op in enumerate(self.form.operands) if op.displayed and "|" in operand_sz_pattern(op)]
+        non_static_ops = [i for i, op in enumerate(self.form.operands) if op.displayed and is_dynamic_operand(op)]
         assert len(non_static_ops) < 2 or self.form.mnemonic == "movnti", "double check if newly found form is correct for assumptions here"
         if non_static_ops:
-            self.size_authority = non_static_ops[0]
-
-
-    def set_insn_size(self, to):
-        self.insn_size = to
+            self.operand_determines_size = non_static_ops[0]
 
     def add_operand(self, op_index, op):
         # For now we don't support any of these constructs
@@ -322,24 +334,17 @@ class EncoderArmContext:
             return None # "Operand::Reg(Reg::Seg(_))"
         if op.group == "ctrl" or op.group == "msr":
             return None
+        if not op.displayed:
+            return None
 
-        if op_index == self.size_authority:
-            size = "sz"
-            self.set_insn_size(size) # may be overwritten by certain branches
-        else:
-            size = self.new_var()
+        opvar = "szop" if op_index == self.operand_determines_size else self.new_var()
+        self.operand_variables.append((op_index, opvar))
 
         match op.a:
             case "I" | "A" | "J":
                 imm = self.new_var()
                 self.tail_vars.append(imm)
-                pat = f"O::Rel({imm})" if op.a == "J" else f"O::Imm({imm})"
-                if op_index == self.size_authority:
-                    # This is one of the variable-sized `op imm` encodings. We have to determine
-                    # the opcode size from the immediate template length.
-                    self.set_insn_size(f"Sz::from_len({imm}.len)")
-                    sz_pat = operand_sz_pattern(op)
-                    return (pat, f"matches!({self.insn_size}, {sz_pat})")
+                pat = f"{opvar}@O::Rel({imm})" if op.a == "J" else f"{opvar}@O::Imm({imm})"
                 try:
                     # variants with a constant immediate value
                     # this an example where templating might not work quite right. We can only
@@ -349,45 +354,33 @@ class EncoderArmContext:
                     return out
                 except:
                     pass
-                if operand_implies_operand_size(op):
-                    assert self.insn_size == "sz", f"{self.form}"
-                    return (pat, f"Sz::from_{op.t}({imm}.len).cmp(&sz) <= 0")
-                elif op.t:
-                    imm_size = { "b": "1", "bs": "1", "bss": "1", "w": "2" }
-                    return (pat, f"{imm}.len == {imm_size[op.t]}")
-                else:
-                    assert False, f"immediate handling for {self.form} not right"
+                return pat
 
             case "G" | "Z" | "R" | "H":
-                assert self.reg_expr is None or op.a not in ["G", "Z"], f"{self.form} does not uniquely identify reg"
-                assert self.rm_variant is None or op.a not in ["R", "H"], f"{self.form} does not uniquely identify rm_variant"
+                assert self.reg_op is None or op.a not in ["G", "Z"], f"{self.form} does not uniquely identify reg"
+                assert self.rm_op is None or op.a not in ["R", "H"], f"{self.form} does not uniquely identify rm_variant"
                 name_filter = self.register_name_filter(op.text)
-                regnum = self.new_var() if op.text is None else name_filter[1]
+                regnum = "_" if op.text is None else name_filter[1]
                 if op.a in ["G", "Z"]:
-                    self.reg_expr = f"Some(Gpr({regnum}))"
+                    self.reg_op = opvar
                 else:
-                    self.rm_variant = f"Gpr(Gpr({regnum}))"
-                sz_pat = operand_sz_pattern(op)
-                self.size_exprs.append((size, op_index))
-                assert op.text is None or sz_pat == name_filter[0], f"{self.form}, {name_filter}"
-                return f"O::Reg(R::Gpr({size}@({sz_pat}), {regnum}))"
+                    self.rm_op = opvar
+                regpat = operand_regtype_pattern(op, regnum)
+                return f"{opvar}@O::Reg({regpat})"
             case "E":
                 assert False, "E must have been expanded into (EM, H)"
             case "EM" | "M":
-                assert self.rm_variant is None, f"{self.form} does not uniquely identify rm_variant"
-                mem = self.new_var()
-                sz_pat = operand_sz_pattern(op)
-                self.size_exprs.append((size, op_index))
-                self.rm_variant = f"Mem({mem}.encoding())"
-                return f"O::Mem({size}@({sz_pat}), {mem})"
+                assert self.rm_op is None, f"{self.form} does not uniquely identify rm_variant"
+                sz_pat = operand_memsize_pattern(op)
+                self.rm_op = opvar
+                return f"{opvar}@O::Mem({sz_pat}, _)"
 
             case "EST" | "ES" | "S" | "SC" | "BA" | "BB" | "BC" | "BD" | "O" | "Y" | "X" | "F" | "V" | "W" | "C" | "D" | "T" | "P" | "U" | "N" | "Q":
                 return # not implemented yet
             case None:
                 filter = self.register_name_filter(op.text)
                 if filter:
-                    self.size_exprs.append((size, op_index))
-                    return f"O::Reg(R::Gpr({size}@({filter[0]}), {filter[1]}))"
+                    return f"{opvar}@O::Reg(R({filter[0]}, {filter[1]}))"
                 else:
                     # unimplemented register
                     return None
@@ -396,11 +389,12 @@ class EncoderArmContext:
 
     def operands(self) -> bool:
         operands_pat = []
+
+        self.determine_operand_size()
         for idx, op in enumerate(self.form.operands):
-            result = self.add_operand(idx, op)
             if not op.displayed:
                 continue
-
+            result = self.add_operand(idx, op)
             match result:
                 case None:
                     print(f"generation for {"".join(self.form.opcode)} {self.form.mnemonic} not supported (op patterns)")
@@ -410,19 +404,22 @@ class EncoderArmContext:
                 case pat:
                     operands_pat.append(pat)
 
+        # TODO: call out to pattern guard function if necessary.
         # gotta verify guard them sizes
-        if len(self.size_exprs) >= 2 and self.size_authority is not None:
-            size_authority_pat = operand_sz_pattern(self.form.operands[self.size_authority])
-            # only need to verify the dynamic operands:
-            for s, i in self.size_exprs:
-                op = self.form.operands[i]
-                if i == self.size_authority or not op.displayed:
-                    continue
-                this_sz_pat = operand_sz_pattern(op)
-                if "|" not in this_sz_pat or this_sz_pat != size_authority_pat:
-                    continue
-                if "sz" in (s for s,i in self.size_exprs):
-                    self.guards.append(f"{s}.is(sz)")
+        if len(self.operand_variables) >= 1:
+            size_code_masks = { "b": 1, "w": 2, "dqp": 4|8, "d": 4, "q": 8, "dq": 16, "vqp": 2|4|8,
+                               "v": 2|4, "vds": 2|4, "bs": 1, "ptp": 2|4|8, "sr": 4, "dr": 4,
+                               "bcd": 0xFF, "di": 4, "wi": 2, "qi": 8, "er": 0xFF, "e": 0xFF, "st":
+                               0xFF, "stx": 0xFF, "s": 0xFF, "vq": 2|8, "vs": 2|4, "bss": 1, None: 0xFF }
+            ops = (v[1] for v in self.operand_variables if v[1] != "szop")
+            if self.operand_determines_size is not None:
+                codes = [f"{size_code_masks[self.form.operands[op[0]].t]}" for op in self.operand_variables if op[1] != "szop"]
+                sz_operand = self.form.operands[self.operand_determines_size]
+                szop_code = f"{size_code_masks[sz_operand.t]}"
+                self.guards.append(f"opguard_szop(szop, {szop_code}, &[{",".join(ops)}], &[{",".join(codes)}])")
+            else:
+                codes = [f"{size_code_masks[self.form.operands[op[0]].t]}" for op in self.operand_variables if op[1] != "szop"]
+                self.guards.append(f"opguard(&[{",".join(ops)}], &[{",".join(codes)}])")
 
         if operands_pat:
             self.guards += [x[1] for x in operands_pat if isinstance(x, tuple)]
@@ -445,7 +442,7 @@ class EncoderArmContext:
             assert self.form.opcd_ext is None
         if self.form.opcd_ext is not None:
             ext_expr = f"Some({self.form.opcd_ext})"
-            assert self.reg_expr is None, f"{self.form} collides reg_expr with ext_expr"
+            assert self.reg_op is None, f"{self.form} collides reg_expr with ext_expr"
             reg_expr = "None"
         else:
             ext_expr = "None"
@@ -454,9 +451,18 @@ class EncoderArmContext:
             f"Some({self.tail_vars[0]})" if len(self.tail_vars) == 1 else
                f"Some(Template::merged([{",".join(self.tail_vars)}]))")
 
+        reg_expr = f"Some({self.reg_op}.reg())" if self.reg_op else "None"
+        rm_expr = f"{self.rm_op}.rm()" if self.rm_op else "Erm::None"
+
+        ops = (v[1] for v in self.operand_variables if v[1] != "szop")
+        if self.operand_determines_size is not None:
+            opi_expr = f"OpI::new(szop, &[{",".join(ops)}])"
+        else:
+            opi_expr = f"OpI::unsz(&[{",".join(ops)}])"
+
         return textwrap.indent(textwrap.dedent(f"""
             (M::{mnemonic}, {operand_pat}){guard_clause} => {{
-                Enc {{ pref: {pref_expr}, op: {opcode_expr}, sz: {self.insn_size if self.insn_size else "Sz::None"}, rex_w: {rex_w}, reg: {self.reg_expr}, rm: Erm::{self.rm_variant}, ext: {ext_expr}, tail: {tail_expr} }}
+                Enc {{ pref: {pref_expr}, op: {opcode_expr}, opi: {opi_expr}, reg: {reg_expr}, rm: {rm_expr}, ext: {ext_expr}, tail: {tail_expr} }}
             }},
         """), " " * 20)
 
@@ -471,10 +477,9 @@ def expand_operand_variants(form: Form):
 def gen_encoder(forms: dict[str, list[Form]]) -> str:
     match_arms = []
 
-    for form in sorted([form for forms in forms.values() for form in forms], key=lambda x: x.opcode):
+    for form in sorted([form for forms in forms.values() for form in forms], key=lambda x: (x.mnemonic, x.opcode)):
         for expform in expand_operand_variants(form):
             arm = EncoderArmContext(expform)
-            arm.determine_static_insn_size();
             if arm.operands():
                 finalized = arm.finalize()
                 if finalized not in match_arms:
@@ -484,8 +489,8 @@ def gen_encoder(forms: dict[str, list[Form]]) -> str:
         impl crate::x64::ast::Instruction {{
             #[track_caller]
             pub const fn encoding(&self) -> crate::x64::Encoding {{
-                use crate::x64::ast::{{Mnemonic as M, Operands as Os, Operand as O, Reg as R}};
-                use crate::x64::{{Size as Sz, Encoding as Enc, EncodingRm as Erm, Gpr }};
+                use crate::x64::ast::{{Mnemonic as M, Operands as Os, Operand as O, Reg as R, RegType as RT, MemSize as MSz }};
+                use crate::x64::{{Encoding as Enc, EncodingRm as Erm, OperandInfo as OpI, opguard_szop, opguard }};
 
                 #[allow(unused_parens, unreachable_patterns)]
                 match (self.mnemonic, self.operands) {{

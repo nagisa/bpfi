@@ -56,9 +56,9 @@ def immediate_operands() -> Iterator[tuple[str, str]]:
         yield f"imm(i64({v}))", str(v)
 
 RUSTC = ["--edition=2024", "--crate-type", "bin", "-C", "embed-bitcode=no", "-C",
-         "incremental=/home/nagisa/d/bpfi/target/debug/incremental", "-L",
-         "dependency=/home/nagisa/d/bpfi/target/debug/deps",  "--extern",
-         "bpfi=/home/nagisa/d/bpfi/target/debug/deps/libbpfi-569b046995ea4868.rlib",
+         "incremental=../target/debug/incremental", "-L",
+         "dependency=../target/debug/deps",  "--extern",
+         "bpfi=../target/debug/deps/libbpfi-569b046995ea4868.rlib",
          "--error-format", "json" ]
 
 def test_rust(input: str) -> Option[bytes]:

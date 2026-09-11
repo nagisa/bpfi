@@ -6,6 +6,8 @@ pub(crate) const fn interpreter_step() -> Template {
     let number = Template::placeholder(4);
 
     bpfi::x64::x64_template! {
+        ; add al, spl
+        ; add al, r8b
         ; hlt
         ; retn
         ; lock repnz retn
@@ -15,9 +17,9 @@ pub(crate) const fn interpreter_step() -> Template {
         ; add Rd(register), imm(number)
         ; js rel(-8i32)
         ; jo rel(placeholder)
-        ; movbe eax, dword ptr [ Rq(register) + rax * 8 + 32i8 ]
-        ; movbe eax, dword ptr [ rcx * 8 + 32i32 ]
-        ; crc32 rax, bx
+        ; movbe eax, dword [ Rq(register) + rax * 8 + 32i8 ]
+        ; movbe eax, dword [ ecx * 8 + 32i32 ]
+        ; crc32 eax, bx
     }
 }
 
